@@ -48,6 +48,13 @@ export function init(_brain, _feeder, isNew) {
     if (gs.environment.lightOn) brain.onLightOn(now);
     else { gs.environment.viewMode = 'normal'; brain.onLightOff(now); }
     setMode(gs.environment);
+    if (gs.environment.lightOn) {      // 日光燈啟動閃爍
+      const st = $('stage');
+      st.classList.remove('flicker');
+      void st.offsetWidth;
+      st.classList.add('flicker');
+      setTimeout(() => st.classList.remove('flicker'), 520);
+    }
     save(now);
     refresh();
   });
@@ -511,7 +518,9 @@ function statusText() {
     case 'sleeping': return `😴「Zzz……」${CONFIG.poses[g.sleepPoseId]?.label ?? '睡覺'}・${loc}${shed}`;
     case 'frozen':   return '❗「不要動…只要不動，就不會被發現…」';
     case 'hiding':   return brain.sub === 'peek' ? '🫣「…你還在嗎？（偷偷探頭）」' : '🕳️「我才不要出去呢。哼。」';
-    case 'hunting':  return brain.sub === 'pounce' ? '💨「就是現在——！」' : '🎯「蟲蟲…蟲蟲…站住…」';
+    case 'hunting':  return brain.sub === 'pounce' ? '💨「就是現在——！」'
+                          : brain.sub === 'crouch' ? '🐾「壓低…屏住呼吸…」'
+                          : '🎯「蟲蟲…蟲蟲…站住…」';
     case 'active':   return (brain.sub === 'drink' ? '💧「咕嚕咕嚕…水好好喝」' : `🐾「巡邏巡邏～這裡都是我的地盤」${shed}`);
     case 'petted':   return {
       wait:    '🤚「！？那隻大手要幹嘛…」',

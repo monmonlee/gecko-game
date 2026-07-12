@@ -95,7 +95,7 @@ export function drawGecko(b) {
   const walking =
     (act === 'active' && (b.sub === 'walk' || b.sub === 'bedtime')) ||
     (act === 'hiding' && b.sub === 'retreat') ||
-    (act === 'hunting' && b.sub !== 'pounce');
+    (act === 'hunting' && b.sub !== 'pounce' && b.sub !== 'crouch');
   const running =
     (act === 'hunting' && b.sub === 'pounce') ||
     (act === 'hiding' && b.sub === 'retreat' && b.speed > 70);
@@ -114,6 +114,7 @@ export function drawGecko(b) {
   if (act === 'hunting') {
     cls.push('hunt-focus');                      // 獵人鎖定眼：瞳孔縮成細線
     if (b.sub === 'pounce') cls.push('mouth-wide');
+    if (b.sub === 'crouch') cls.push('crouch');  // 撲食前壓低蓄力
   }
   if (g.isShedding) cls.push('shedding');
   if (act === 'petted') {
@@ -130,8 +131,12 @@ export function drawGecko(b) {
   // 半身出窩一定頭朝外（窩口在右邊）
   const face = act === 'sleeping' && g.sleepPoseId === 'halfout' ? 1 : b.facing;
   const sz = SIZE[g.stage] ?? 1;      // 幼體小小一隻，養大才變大
+  // 轉身時輕輕「壓扁→彈開」，不會瞬間翻面
+  if (face !== lastFace) { lastFace = face; turnAt = performance.now(); }
+  const tp = Math.min(1, (performance.now() - turnAt) / 140);
+  const fx = 0.3 + 0.7 * tp;
   geckoEl.style.transform =
-    `translate(${(b.x - 32 + ox).toFixed(1)}px, ${(b.y - 62 + oy).toFixed(1)}px) scale(${(sz * face).toFixed(3)}, ${sz})`;
+    `translate(${(b.x - 32 + ox).toFixed(1)}px, ${(b.y - 62 + oy).toFixed(1)}px) scale(${(sz * face * fx).toFixed(3)}, ${sz})`;
 
   drawEmote(b, act, sz);
   updateCamera(b);
@@ -139,6 +144,7 @@ export function drawGecko(b) {
 
 // 成長階段的體型（以真實天數換算）
 const SIZE = { juvenile: 0.62, subadult: 0.8, adult: 1 };
+let lastFace = 1, turnAt = 0;         // 轉身過渡動畫的狀態
 
 // 頭頂心情小圖示
 function drawEmote(b, act, sz = 1) {
@@ -165,12 +171,16 @@ export function poseThumb(poseId) {
 ===================================================================== */
 
 // ---- 側面圖（走路、互動、大部分睡姿的基礎） ----
+// 尾巴獨立成 .tail 群組：走路時左右搖、睡覺時隨呼吸微動
 function sideSVG(thumb = false) {
+  const sfx = thumb ? '-t' : '';
   return `
 <svg class="gecko-svg pv pv-side${thumb ? ' thumb-side' : ''}" viewBox="0 0 64 32" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <clipPath id="gk-clip${thumb ? '-t' : ''}">
+    <clipPath id="gkt${sfx}">
       <ellipse cx="12" cy="20.5" rx="11.5" ry="6"/>
+    </clipPath>
+    <clipPath id="gkb${sfx}">
       <ellipse cx="31" cy="19" rx="13.5" ry="8.5"/>
       <ellipse cx="48.5" cy="15.5" rx="10" ry="7.2"/>
     </clipPath>
@@ -180,11 +190,23 @@ function sideSVG(thumb = false) {
   <rect class="leg leg-b2" x="22.5" y="20" width="3.4" height="9" rx="1.7" fill="#c08e75"/>
   <rect class="leg leg-f2" x="40.5" y="19" width="3.4" height="9" rx="1.7" fill="#c08e75"/>
 
-  <g class="body-group">
-    <g clip-path="url(#gk-clip${thumb ? '-t' : ''})">
-      <rect x="0" y="0" width="64" height="32" fill="#C08552"/>
+  <!-- 肥尾巴（獨立擺動） -->
+  <g class="tail">
+    <g clip-path="url(#gkt${sfx})">
+      <rect x="0" y="0" width="26" height="32" fill="#C08552"/>
       <rect x="3"    y="0" width="6"   height="32" fill="#5C3A28"/>
       <rect x="9"    y="0" width="1.2" height="32" fill="#EFE3D0"/>
+      <rect x="17"   y="0" width="1.2" height="32" fill="#EFE3D0"/>
+      <rect x="18.2" y="0" width="7"   height="32" fill="#5C3A28"/>
+      <rect x="0" y="24.5" width="26" height="7.5" fill="#D9A98F"/>
+      <circle cx="13" cy="18" r="0.8" fill="#7A4E30"/>
+      <circle cx="12" cy="22" r="0.7" fill="#7A4E30"/>
+    </g>
+  </g>
+
+  <g class="body-group">
+    <g clip-path="url(#gkb${sfx})">
+      <rect x="0" y="0" width="64" height="32" fill="#C08552"/>
       <rect x="17"   y="0" width="1.2" height="32" fill="#EFE3D0"/>
       <rect x="18.2" y="0" width="7"   height="32" fill="#5C3A28"/>
       <rect x="25.2" y="0" width="1.2" height="32" fill="#EFE3D0"/>
@@ -193,8 +215,6 @@ function sideSVG(thumb = false) {
       <rect x="41.7" y="0" width="1.2" height="32" fill="#EFE3D0"/>
       <ellipse cx="47" cy="9.5" rx="7.5" ry="3.6" fill="#5C3A28"/>
       <rect x="0" y="24.5" width="64" height="7.5" fill="#D9A98F"/>
-      <circle cx="13" cy="18"   r="0.8" fill="#7A4E30"/>
-      <circle cx="12" cy="22"   r="0.7" fill="#7A4E30"/>
       <circle cx="29" cy="15"   r="0.9" fill="#7A4E30"/>
       <circle cx="31" cy="20.5" r="0.7" fill="#7A4E30"/>
       <circle cx="45" cy="13"   r="0.8" fill="#7A4E30"/>

@@ -30,7 +30,8 @@
       "Bash(curl -sL -o src/fonts/Cubic_11.woff2 \"https://raw.githubusercontent.com/ACh-K/Cubic-11/main/fonts/web/Cubic_11.woff2\")",
       "Bash(curl -sL -o src/fonts/LICENSE-Cubic11.txt \"https://raw.githubusercontent.com/ACh-K/Cubic-11/main/LICENSE\")",
       "Bash(curl -sL -o src/fonts/OFL-Cubic11.txt \"https://raw.githubusercontent.com/ACh-K/Cubic-11/main/OFL.txt\")",
-      "Bash(git commit -q -m '美術打磨＋拍立得相簿：Cubic 11 像素字型、光束灰塵、場景景深、植物搖曳、觀察鏡拍照收藏 *)"
+      "Bash(git commit -q -m '美術打磨＋拍立得相簿：Cubic 11 像素字型、光束灰塵、場景景深、植物搖曳、觀察鏡拍照收藏 *)",
+      "Bash(git commit -q -m '動態打磨：尾巴搖擺與身體律動、轉身過渡、撲食蓄力、椰子殼躲窩、開燈閃爍、好感條刻度 *)"
     ]
   }
 }

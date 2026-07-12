@@ -80,6 +80,18 @@ html, body {
   background: #3a3128;
   border-radius: 4px;
   overflow: hidden;
+  position: relative;
+}
+/* 好感條的等級門檻刻度（25 警戒／50 熟悉／75 信任） */
+.track.ticks::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0 calc(25% - 1px), rgba(16, 13, 9, .9) calc(25% - 1px) 25%, transparent 25%),
+    linear-gradient(90deg, transparent 0 calc(50% - 1px), rgba(16, 13, 9, .9) calc(50% - 1px) 50%, transparent 50%),
+    linear-gradient(90deg, transparent 0 calc(75% - 1px), rgba(16, 13, 9, .9) calc(75% - 1px) 75%, transparent 75%);
 }
 .fill { height: 100%; border-radius: 4px; transition: width .4s; }
 .fill.aff { background: linear-gradient(90deg, #c98a3e, #e8c97a); }
@@ -181,6 +193,19 @@ html, body {
 #stage.mode-light #lightbeam { opacity: 1; animation: beam-breathe 6s ease-in-out infinite; }
 @keyframes beam-breathe { 50% { opacity: .72; } }
 
+/* 開燈瞬間：日光燈啟動的閃爍（啪、啪—亮） */
+#stage.flicker #lamp, #stage.flicker #lightbeam {
+  animation: fluoro .45s steps(1) both;
+}
+@keyframes fluoro {
+  0%   { opacity: 0; }
+  18%  { opacity: .75; }
+  28%  { opacity: .05; }
+  50%  { opacity: .9; }
+  62%  { opacity: .25; }
+  78%, 100% { opacity: 1; }
+}
+
 #dust {
   position: absolute;
   inset: 0;
@@ -242,22 +267,33 @@ html, body {
 }
 @keyframes shimmer { 50% { filter: brightness(1.14); } }
 
+/* 椰子殼躲窩 */
 #hide {
   position: absolute;
   left: 28px; top: 172px;
   width: 68px; height: 34px;
-  background: #6b4a33;
-  border-radius: 26px 26px 4px 4px;
-  box-shadow: inset -7px -5px 0 #533826;
+  background: radial-gradient(ellipse 105% 135% at 35% -10%, #7d5a3e 0%, #6b4a33 52%, #503722 100%);
+  border-radius: 32px 34px 5px 5px;
+  box-shadow: inset -8px -6px 0 rgba(0, 0, 0, .2), inset 5px 5px 0 rgba(255, 235, 200, .09);
   z-index: 30;                /* 蓋在守宮上面，躲進去只露尾巴 */
 }
-#hide::after {
+#hide::before {               /* 椰殼纖維紋理 */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    repeating-linear-gradient(78deg, rgba(0, 0, 0, .13) 0 2px, transparent 2px 6px),
+    repeating-linear-gradient(101deg, rgba(255, 220, 170, .06) 0 1px, transparent 1px 7px);
+}
+#hide::after {                /* 入口：深到看不見底 */
   content: "";
   position: absolute;
   right: 6px; bottom: 0;
   width: 20px; height: 16px;
-  background: var(--ink);
+  background: radial-gradient(ellipse at 50% 100%, #070403 55%, #241812 100%);
   border-radius: 10px 10px 0 0;
+  box-shadow: 0 -1.5px 0 rgba(255, 235, 200, .14);
 }
 
 /* ---------- 新家具 ---------- */
@@ -487,6 +523,29 @@ html, body {
   0%, 100% { transform: rotate(16deg); }
   50% { transform: rotate(-16deg); }
 }
+
+/* 肥尾巴：走路左右搖、睡覺隨呼吸微動 */
+.pv .tail { transform-box: fill-box; transform-origin: 95% 55%; }
+.gk.walking .pv-side .tail { animation: tail-sway .55s ease-in-out infinite; }
+.gk.running .pv-side .tail { animation: tail-sway .26s ease-in-out infinite; }
+@keyframes tail-sway {
+  0%, 100% { transform: rotate(5deg); }
+  50% { transform: rotate(-5deg); }
+}
+.gk.eyes-closed .pv-side .tail { animation: tail-breathe 2.6s ease-in-out infinite; }
+@keyframes tail-breathe { 50% { transform: rotate(2deg) scaleY(1.04); } }
+
+/* 走路時身體跟著律動（S 形爬行感） */
+.gk.walking .pv-side .body-group { animation: body-wiggle .55s ease-in-out infinite; }
+.gk.running .pv-side .body-group { animation: body-wiggle .26s ease-in-out infinite; }
+@keyframes body-wiggle {
+  0%, 100% { transform: translateY(0) rotate(.9deg); }
+  50% { transform: translateY(-.8px) rotate(-.9deg); }
+}
+
+/* 撲食前壓低蓄力 */
+.gk.crouch .gecko-svg { transform: scaleY(.72) translateY(1.5px); transition: transform .1s; }
+.gk.crouch .leg { transform: rotate(24deg); }
 
 /* 側面圖睡姿（以變形近似，之後換 sprite） */
 .gk.pose-curl .gecko-svg  { transform: scaleY(.85) scaleX(.9); }

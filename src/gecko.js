@@ -252,12 +252,18 @@ export class Brain {
       if (dist > 46) { this.sub = 'chase'; return; }   // 蟲被拉走，重新追
       this.moveToward(w.x, Math.min(216, w.y), dt, CONFIG.feed.pounceSpeed);
       if (Math.hypot(w.x - this.x, w.y - this.y) < 8) this.catchWorm(now);
+    } else if (this.sub === 'crouch') {
+      // 壓低蓄力，盯緊蟲蟲
+      if (Math.abs(w.x - this.x) > 2) this.facing = w.x > this.x ? 1 : -1;
+      this.timer -= dt;
+      if (dist > 46) { this.sub = 'chase'; return; }
+      if (this.timer <= 0) { this.sub = 'pounce'; emit('sfx', 'pounce'); }
     } else {
       // 守宮只在地面追，蟲飛太高就在下面等
       this.moveToward(w.x, Math.max(150, Math.min(216, w.y)), dt, CONFIG.feed.huntSpeed);
       if (now - s.startedAt >= CONFIG.feed.guideMinMs && dist < CONFIG.feed.pounceDist) {
-        this.sub = 'pounce';
-        emit('sfx', 'pounce');
+        this.sub = 'crouch';
+        this.timer = 0.18;
       }
     }
   }
