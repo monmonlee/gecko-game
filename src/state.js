@@ -47,6 +47,7 @@ function defaultState(now, name) {
       weighHistory: [],
       handTameCount: 0,
       photosUnlocked: [],
+      behaviorsUnlocked: [],
       feedCount: 0,
       shedsCollected: 0,
     },
@@ -202,17 +203,35 @@ export function addAffinity(delta, reason) {
 }
 
 export function poseForLocation(locId, tierId) {
+  // 2% 稀有睡姿（躲窩裡看不到就不浪費）
+  if (locId !== 'hide' && Math.random() < 0.02) {
+    if (locId === 'glass') return 'headstand';
+    return Math.random() < 0.5 ? 'bellyup' : 'blep_sleep';
+  }
+  const q = Math.random();
   switch (locId) {
-    case 'hide':    return 'hide_tail';
+    case 'hide':    return q < 0.5 ? 'hide_tail' : q < 0.85 ? 'halfout' : 'roof';
     case 'glass':   return 'glass';
-    case 'mossbox': return 'moss';
+    case 'mossbox': return q < 0.7 ? 'moss' : 'buttup';
     case 'heatmat': return 'belly';
     case 'plant':   return 'leaf';
-    case 'rock':
-    case 'driftwood': return Math.random() < 0.6 ? 'perch' : 'curl';
+    case 'water':   return q < 0.4 ? 'soak' : 'chinrest';
+    case 'rock':    return q < 0.5 ? 'perch' : q < 0.8 ? 'standlean' : 'chinrest';
+    case 'driftwood': return q < 0.6 ? 'perch' : 'draped';
     case 'open':    if (tierId === 'trust') return 'open'; break;
   }
-  return Math.random() < 0.5 ? 'curl' : 'flat';
+  return q < 0.3 ? 'flat' : q < 0.55 ? 'curl' : q < 0.8 ? 'donut' : 'tailmask';
+}
+
+// 行為圖鑑：親眼看到一次就解鎖
+export function unlockBehavior(id) {
+  const r = gs.records;
+  r.behaviorsUnlocked ??= [];
+  if (r.behaviorsUnlocked.includes(id)) return;
+  r.behaviorsUnlocked.push(id);
+  const b = CONFIG.behaviors[id];
+  emit('toast', `📖 行為圖鑑＋1：${b.icon} ${b.label}`);
+  save(Date.now());
 }
 
 // 各好感度等級願意睡的地點；脫皮時特別愛濕濕的苔蘚盒

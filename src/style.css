@@ -282,14 +282,41 @@ html, body {
 #gecko {
   position: absolute;
   left: 0; top: 0;
-  width: 64px; height: 32px;
+  width: 64px; height: 64px;
   z-index: 20;
   will-change: transform;
 }
-#gecko .gecko-svg {
-  width: 100%; height: 100%;
+#gecko svg.pv {
+  position: absolute;
+  left: 0; bottom: 0;
+  display: none;
   overflow: visible;
+}
+#gecko svg.pv-side { display: block; width: 64px; height: 32px; transform-origin: 50% 100%; }
+#gecko svg:not(.pv-side) { width: 64px; height: 64px; }
+
+/* 專屬睡姿：隱藏側面圖、顯示自己的畫面 */
+#gecko.pose-donut .pv-side, #gecko.pose-tailmask .pv-side, #gecko.pose-chinrest .pv-side,
+#gecko.pose-soak .pv-side, #gecko.pose-draped .pv-side, #gecko.pose-standlean .pv-side,
+#gecko.pose-buttup .pv-side, #gecko.pose-glass .pv-side, #gecko.pose-headstand .pv-side,
+#gecko.pose-open .pv-side, #gecko.pose-bellyup .pv-side { display: none; }
+#gecko.pose-donut .pv-donut         { display: block; }
+#gecko.pose-tailmask .pv-tailmask   { display: block; }
+#gecko.pose-chinrest .pv-chinrest   { display: block; }
+#gecko.pose-soak .pv-soak           { display: block; }
+#gecko.pose-draped .pv-draped       { display: block; }
+#gecko.pose-standlean .pv-standlean { display: block; }
+#gecko.pose-buttup .pv-buttup       { display: block; }
+#gecko.pose-glass .pv-glass         { display: block; }
+#gecko.pose-headstand .pv-headstand { display: block; }
+#gecko.pose-open .pv-open           { display: block; }
+#gecko.pose-bellyup .pv-bellyup     { display: block; }
+
+/* 專屬圖的呼吸 */
+#gecko .breathe-g {
+  transform-box: fill-box;
   transform-origin: 50% 100%;
+  animation: breathe 2.6s ease-in-out infinite;
 }
 
 /* 呼吸 */
@@ -299,16 +326,60 @@ html, body {
 }
 @keyframes breathe { 50% { transform: scaleY(1.045); } }
 
-/* 眼睛狀態 */
-#gecko .eye-lid { display: none; }
+/* 眼睛狀態（用 .pv 範圍讓圖鑑縮圖也套用預設臉） */
+.pv .eye-lid, .pv .eye-happy, .pv .eye-flat, .pv .eye-heart { display: none; }
+.pv .mouth-open, .pv .t-blep, .pv .t-lick, .pv .t-lips { display: none; }
+.pv .d-wink-open { display: none; }
+
 #gecko.eyes-closed .eye { display: none; }
 #gecko.eyes-closed .eye-lid { display: block; }
+
 #gecko.state-frozen .eye {
   transform: scale(1.28);
   transform-box: fill-box;
   transform-origin: center;
 }
+#gecko.state-frozen .pupil {          /* 嚇到瞳孔縮小 */
+  transform: scale(.62);
+  transform-box: fill-box;
+  transform-origin: center;
+}
 #gecko.state-frozen .body-group { animation-play-state: paused; }
+
+/* 獵人鎖定眼：瞳孔縮成細直線 */
+#gecko.hunt-focus .pupil {
+  transform: scaleX(.32);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* 撲食血盆大口／打哈欠 */
+#gecko.mouth-wide .mouth, #gecko.micro-yawn .mouth { display: none; }
+#gecko.mouth-wide .mouth-open, #gecko.micro-yawn .mouth-open { display: block; }
+#gecko.micro-yawn .eye { display: none; }
+#gecko.micro-yawn .eye-lid { display: block; }
+
+/* 摸摸成功：幸福瞇眼 ˘ᴗ˘ */
+#gecko.pet-happy .eye { display: none; }
+#gecko.pet-happy .eye-happy { display: block; }
+
+/* 上手大獎：愛心眼 */
+#gecko.onhand .pupil { display: none; }
+#gecko.onhand .eye-heart { display: block; }
+
+/* 陌生／警戒期的冷淡眼神（上眼皮壓低） */
+#gecko.mood-low .eye-flat { display: block; }
+
+/* 小動作：舌頭三件組 */
+#gecko.micro-blep .t-blep, #gecko.pose-blep_sleep .t-blep { display: block; }
+#gecko.micro-eyelick .t-lick { display: block; }
+#gecko.micro-lick_lips .t-lips { display: block; }
+
+/* 睡覺偷睜一隻眼（側面）＋甜甜圈的一睜一閉 */
+#gecko.micro-wink .eye { display: block; }
+#gecko.micro-wink .eye-lid { display: none; }
+#gecko.micro-wink .d-wink-open { display: block; }
+#gecko.micro-wink .d-wink-lid { display: none; }
 
 /* 走路：四肢擺動 */
 .leg { transform-box: fill-box; transform-origin: 50% 12%; }
@@ -321,22 +392,34 @@ html, body {
   50% { transform: rotate(-16deg); }
 }
 
-/* 睡姿（佔位版：以變形近似，之後換 sprite） */
+/* 側面圖睡姿（以變形近似，之後換 sprite） */
 #gecko.pose-curl .gecko-svg  { transform: scaleY(.85) scaleX(.9); }
-#gecko.pose-flat .gecko-svg  { transform: scaleY(.72); }
-#gecko.pose-glass .gecko-svg { transform: scaleY(.8) rotate(-3deg); }
-#gecko.pose-open .gecko-svg  { transform: scaleY(.78) scaleX(1.1); }
+#gecko.pose-flat .gecko-svg  { transform: scaleY(.72) scaleX(1.08); }
 #gecko.pose-hide_tail .gecko-svg { transform: scaleY(.9); }
+#gecko.pose-halfout .gecko-svg { transform: scaleY(.88); }
+#gecko.pose-blep_sleep .gecko-svg { transform: scaleY(.8); }
 
 /* 喝水：低頭小口啜 */
 #gecko.drinking .gecko-svg { animation: sip 1.2s ease-in-out infinite; }
 @keyframes sip { 50% { transform: translateY(1.5px) rotate(3deg); } }
 
-/* 新睡姿（佔位變形） */
 #gecko.pose-perch .gecko-svg { transform: scaleY(.8); }
 #gecko.pose-moss .gecko-svg  { transform: scaleY(.82) scaleX(.88); }
 #gecko.pose-belly .gecko-svg { transform: scaleY(.68) scaleX(1.06); }
 #gecko.pose-leaf .gecko-svg  { transform: scaleY(.85) scaleX(.9); }
+#gecko.pose-roof .gecko-svg  { transform: scaleY(.82); }
+
+/* ---------- 頭頂心情圖示 ---------- */
+#emote {
+  position: absolute;
+  left: 0; top: 0;
+  z-index: 26;
+  font-size: 10px;
+  display: none;
+  pointer-events: none;
+  animation: emote-float 2s ease-in-out infinite;
+}
+@keyframes emote-float { 50% { margin-top: -3px; } }
 
 /* 脫皮：整條發白 */
 #gecko.shedding .gecko-svg { filter: brightness(1.45) saturate(.45) contrast(.92); }
@@ -641,6 +724,103 @@ html, body {
   padding: 8px 22px;
   cursor: pointer;
 }
+
+/* ---------- 圖鑑分頁 ---------- */
+#btn-dex {
+  margin-left: auto;
+  background: #2f2820;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#dex {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 95;
+}
+#dex.hidden { display: none; }
+#dex-box {
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 14px;
+  width: min(92vw, 420px);
+  max-height: 84vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#dex-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 8px;
+}
+#dex-head h3 { margin: 0; font-size: 14px; }
+#dex-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+#dex-body {
+  overflow-y: auto;
+  padding: 0 14px 14px;
+  -webkit-overflow-scrolling: touch;
+}
+.dex-section {
+  font-size: 12px;
+  font-weight: 700;
+  margin: 10px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dex-count { font-size: 10px; color: var(--text-dim); font-weight: 400; }
+.dex-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.dexcard {
+  position: relative;
+  background: #1c1812;
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  padding: 8px 6px;
+  text-align: center;
+}
+.dexcard .rare {
+  position: absolute;
+  top: 4px; right: 6px;
+  font-size: 10px;
+}
+.dex-art {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  image-rendering: pixelated;
+}
+.dex-art svg { width: 52px; height: 52px; overflow: visible; }
+.dex-art svg.thumb-side { width: 60px; height: 30px; }
+.dex-art .breathe-g { animation: none; }
+.dex-emoji { font-size: 30px; }
+.dex-name { font-size: 10px; margin-top: 4px; }
+.dex-quote { font-size: 8.5px; color: var(--text-dim); margin-top: 2px; min-height: 20px; line-height: 1.4; }
+.dexcard.locked .dex-art { filter: brightness(0); opacity: .45; }
+.dexcard.locked .dex-name, .dexcard.locked .dex-quote { color: #5a4f3e; }
 
 /* ---------- Debug ---------- */
 #debug {

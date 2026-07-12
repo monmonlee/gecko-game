@@ -26,6 +26,7 @@ body { background: #14110d; color: #e8ddc9; }
       <span id="g-name">—</span>
       <span id="g-stagebadge" class="badge">幼體</span>
       <span id="g-tier" class="badge" data-tier="stranger">陌生</span>
+      <button id="btn-dex">📖 圖鑑</button>
     </div>
     <div class="bar"><span class="bl">好感</span><div class="track"><div id="bar-aff" class="fill aff"></div></div><span class="bn" id="num-aff">0</span></div>
     <div class="bar"><span class="bl">飽食</span><div class="track"><div id="bar-hun" class="fill hun"></div></div><span class="bn" id="num-hun">0</span></div>
@@ -45,6 +46,7 @@ body { background: #14110d; color: #e8ddc9; }
         <div id="poop"></div>
         <div id="shedskin"></div>
         <div id="gecko"></div>
+        <div id="emote"></div>
         <div id="hide"></div>
         <div id="hand"><span>🤚</span></div>
         <div id="worm"></div>
@@ -74,6 +76,16 @@ body { background: #14110d; color: #e8ddc9; }
   </div>
 
   <div id="modal" class="hidden"><div id="modal-box"></div></div>
+
+  <div id="dex" class="hidden">
+    <div id="dex-box">
+      <div id="dex-head">
+        <h3>📖 觀察圖鑑</h3>
+        <button id="dex-close">✕</button>
+      </div>
+      <div id="dex-body"></div>
+    </div>
+  </div>
 
   <div id="debug"></div>
 </div>

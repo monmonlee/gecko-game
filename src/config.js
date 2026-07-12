@@ -89,16 +89,45 @@ export const CONFIG = {
     glass:     { x: 296, y: 204, label: '玻璃邊' },
   },
 
+  // 睡姿圖鑑：own = 有專屬畫面（否則用側面圖＋變形）；rare = 稀有（圖鑑加星）
   poses: {
-    curl:      { label: '蜷睡' },
-    flat:      { label: '攤平趴睡' },
-    hide_tail: { label: '窩裡露尾' },
-    glass:     { label: '貼玻璃睡' },
-    open:      { label: '大字睡' },   // 信任級解鎖
-    perch:     { label: '高處趴睡' }, // 流木／岩石
-    moss:      { label: '苔蘚裡窩著' },
-    belly:     { label: '暖墊攤肚' },
-    leaf:      { label: '葉蔭下蜷睡' },
+    hide_tail:  { label: '窩裡露尾',        quote: '尾巴放外面…裡面有點擠嘛' },
+    halfout:    { label: '半身出窩睡',      quote: '走到一半…就睡著了…' },
+    roof:       { label: '睡在屋頂上',      quote: '床的上面，比床好睡（？）' },
+    curl:       { label: '蜷睡',            quote: '捲起來，保暖' },
+    donut:      { label: '甜甜圈',          quote: '一個完美的圈圈', own: true },
+    tailmask:   { label: '尾巴眼罩',        quote: '太亮了啦。尾巴是我的眼罩', own: true },
+    flat:       { label: '攤平趴睡',        quote: '地板涼涼，整隻攤開' },
+    chinrest:   { label: '下巴枕枕頭',      quote: '下巴要有枕頭才好睡', own: true },
+    soak:       { label: '泡湯睡',          quote: '泡湯…舒服…咕嚕…', own: true },
+    perch:      { label: '高處趴睡',        quote: '高的地方，視野好，安心' },
+    draped:     { label: '掛襪子睡',        quote: '掛著也能睡，我很厲害吧', own: true },
+    standlean:  { label: '靠著站睡',        quote: '站著…也可以…睡…', own: true },
+    moss:       { label: '苔蘚裡窩著',      quote: '濕濕軟軟的苔蘚，五星級' },
+    buttup:     { label: '屁股朝天',        quote: '頭埋進去就看不到明天（？）', own: true },
+    leaf:       { label: '葉蔭下蜷睡',      quote: '葉子下面是我的秘密基地' },
+    belly:      { label: '暖墊攤肚',        quote: '肚子暖暖的…要融化了…' },
+    glass:      { label: '貼玻璃睡',        quote: '這面牆涼涼的，很好睡。你在看什麼？', own: true },
+    headstand:  { label: '角落倒栽蔥',      quote: '？我覺得這樣很好睡啊', own: true, rare: true },
+    open:       { label: '大字睡',          quote: '四腳大攤開，這裡最安全', own: true },   // 信任級解鎖
+    bellyup:    { label: '翻肚睡',          quote: '肚肚朝上～（守護級的安心）', own: true, rare: true },
+    blep_sleep: { label: '吐舌睡',          quote: 'Zzz…（舌頭露出來了）', rare: true },
+  },
+
+  // 行為圖鑑：親眼看到一次就解鎖
+  behaviors: {
+    yawn:       { icon: '🥱', label: '打哈欠',           desc: '嘴巴張超大，眼睛擠成一條線' },
+    eyelick:    { icon: '👅', label: '舔眼睛',           desc: '守宮不能眨眼，要用舌頭把眼睛擦乾淨' },
+    wink:       { icon: '👀', label: '睜一隻眼閉一隻眼', desc: '半夢半醒…還是在偷看你？' },
+    blep:       { icon: '😛', label: '吐舌頭',           desc: '舌頭忘記收回去了（本人沒有發現）' },
+    lick_lips:  { icon: '😋', label: '吃飽舔嘴',         desc: '蟲蟲好吃，嘴巴要舔乾淨' },
+    heart_eyes: { icon: '😍', label: '愛心眼',           desc: '在你的手心上，眼睛裡有小愛心' },
+  },
+
+  micro: {                              // 睡覺／發呆時的隨機小動作
+    firstMs: [12000, 30000],
+    gapMs: [20000, 60000],
+    durMs: { yawn: 2500, eyelick: 1800, blep: 6000, wink: 5000, lick_lips: 1600 },
   },
 
   saveKey: 'gecko-game-save-v1',

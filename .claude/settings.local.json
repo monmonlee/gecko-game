@@ -9,7 +9,16 @@
       "Bash(npm run *)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git commit -m '守宮陪伴放置遊戲：核心玩法＋互動＋手機 PWA *)"
+      "Bash(git commit -m '守宮陪伴放置遊戲：核心玩法＋互動＋手機 PWA *)",
+      "Bash(gh repo *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(gh api *)",
+      "Bash(gh workflow *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://monmonlee.github.io/gecko-game/)",
+      "Bash(curl -s https://monmonlee.github.io/gecko-game/)",
+      "Bash(git commit -m 'README：遊戲介紹與版權聲明 *)",
+      "Bash(git commit -q -m 'v2：觀察圖鑑分頁＋21 種睡姿（含專屬畫面）＋表情與小動作系統 *)"
     ]
   }
 }

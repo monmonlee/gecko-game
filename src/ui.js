@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 import { on } from './events.js';
-import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld } from './state.js';
-import { setMode, drawWorld } from './render.js';
+import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior } from './state.js';
+import { setMode, drawWorld, poseThumb } from './render.js';
 
 let brain, feeder;
 let handBusy = false;                 // 手伸進缸裡的期間鎖住其他互動
@@ -101,6 +101,13 @@ export function init(_brain, _feeder, isNew) {
 
   $('modal').addEventListener('click', e => {
     if (e.target.id === 'modal' || e.target.id === 'modal-close') $('modal').classList.add('hidden');
+  });
+
+  // 圖鑑分頁
+  $('btn-dex').addEventListener('click', openDex);
+  $('dex-close').addEventListener('click', () => $('dex').classList.add('hidden'));
+  $('dex').addEventListener('click', e => {
+    if (e.target.id === 'dex') $('dex').classList.add('hidden');
   });
 
   initDebug();
@@ -222,6 +229,7 @@ function startPalm() {
     if (Math.random() * 100 < rate) {
       brain.palmClimb(px, py);
       gs.records.handTameCount = (gs.records.handTameCount || 0) + 1;
+      unlockBehavior('heart_eyes');
       addAffinity(CONFIG.affinity.handTame, '爬上你的手');
       showToast(`🎉「…你的手，暖暖的。」牠爬上你的手心了！（第 ${gs.records.handTameCount} 次）`);
       setTimeout(hideHand, 4200);
@@ -231,6 +239,45 @@ function startPalm() {
       setTimeout(hideHand, 1200);
     }
   }, CONFIG.pet.palmWaitMs);
+}
+
+// ---- 圖鑑分頁 ----
+function openDex() {
+  const seenPoses = new Set((gs.records.photosUnlocked || []).map(k => k.split('@')[0]));
+  const seenActs = new Set(gs.records.behaviorsUnlocked || []);
+  const poseIds = Object.keys(CONFIG.poses);
+  const actIds = Object.keys(CONFIG.behaviors);
+
+  const poseCards = poseIds.map(id => {
+    const p = CONFIG.poses[id];
+    const got = seenPoses.has(id);
+    return `
+      <div class="dexcard ${got ? '' : 'locked'}">
+        ${p.rare ? '<span class="rare">⭐</span>' : ''}
+        <div class="dex-art">${poseThumb(id)}</div>
+        <div class="dex-name">${got ? p.label : '？？？'}</div>
+        <div class="dex-quote">${got ? `「${p.quote}」` : '還沒看過這個睡姿'}</div>
+      </div>`;
+  }).join('');
+
+  const actCards = actIds.map(id => {
+    const b = CONFIG.behaviors[id];
+    const got = seenActs.has(id);
+    return `
+      <div class="dexcard ${got ? '' : 'locked'}">
+        <div class="dex-art dex-emoji">${got ? b.icon : '❔'}</div>
+        <div class="dex-name">${got ? b.label : '？？？'}</div>
+        <div class="dex-quote">${got ? b.desc : '還沒看過這個小動作'}</div>
+      </div>`;
+  }).join('');
+
+  $('dex-body').innerHTML = `
+    <div class="dex-section">😴 睡姿收集 <span class="dex-count">${seenPoses.size}/${poseIds.length}</span></div>
+    <div class="dex-grid">${poseCards}</div>
+    <div class="dex-section">✨ 行為收集 <span class="dex-count">${seenActs.size}/${actIds.length}</span></div>
+    <div class="dex-grid">${actCards}</div>
+    <div class="modal-note">開燈或夜視時親眼看到，才算收集到唷</div>`;
+  $('dex').classList.remove('hidden');
 }
 
 // ---- 磅秤視窗 ----
@@ -307,9 +354,21 @@ export function refresh() {
 }
 
 // 狀態列＝牠的內心小劇場
+const MICRO_LINES = {
+  yawn:      '🥱「哈啊——嗯…」',
+  eyelick:   '👅「眼睛擦一擦…」（守宮用舌頭清潔眼睛！）',
+  blep:      '😛（舌頭忘記收回去了）',
+  wink:      '👀（睜一隻眼閉一隻眼…牠在偷看你有沒有在看牠）',
+  lick_lips: '😋「嘴巴舔一舔～蟲蟲的味道」',
+};
+
 function statusText() {
   const env = gs.environment, g = gs.gecko;
   if (!env.lightOn && env.viewMode === 'normal') return '🌑 一片漆黑……（戴上夜視鏡偷看牠吧）';
+  if (brain.micro && Date.now() < brain.micro.until &&
+      (g.currentActivity === 'sleeping' || g.currentActivity === 'active')) {
+    return MICRO_LINES[brain.micro.id] ?? '';
+  }
   const shed = g.isShedding ? '（脫皮中，白白的）' : '';
   const loc = CONFIG.locations[g.locationId]?.label ?? '';
   switch (g.currentActivity) {

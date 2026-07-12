@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 import {
   gs, tierOf, addAffinity, poseForLocation, rotateSleepPose,
-  unlockCombo, sleepLocationPool, computeWeight,
+  unlockCombo, sleepLocationPool, computeWeight, unlockBehavior,
 } from './state.js';
 import { emit } from './events.js';
 import { drawGecko } from './render.js';
@@ -31,6 +31,8 @@ export class Brain {
     this.pendingLoc = gs.gecko.locationId;
     this.nextPoseRotate = now + randMs(CONFIG.pose.rotateMs);
     this.hunt = null;
+    this.micro = null;                 // 進行中的小動作（打哈欠、舔眼睛…）
+    this.microAt = now + randMs(CONFIG.micro.firstMs);
 
     // 暫態 activity 不跨 session
     if (['hunting', 'frozen', 'petted'].includes(gs.gecko.currentActivity)) {
@@ -57,8 +59,30 @@ export class Brain {
       case 'sleeping': this.updateSleeping(dt, now); break;
       case 'petted':   this.updatePetted(dt, now); break;
     }
+    this.maybeMicro(now);
     this.checkUnlock();
     drawGecko(this);
+  }
+
+  // 隨機小動作：睡覺時打哈欠／偷睜一隻眼／吐舌，發呆時舔眼睛
+  maybeMicro(now) {
+    if (this.micro && now >= this.micro.until) this.micro = null;
+    if (this.micro || now < this.microAt) return;
+    if (this.act !== 'sleeping' && !(this.act === 'active' && this.sub === 'idle')) return;
+    this.microAt = now + randMs(CONFIG.micro.gapMs);
+    const env = gs.environment;
+    if (!env.lightOn && env.viewMode !== 'nightvision') return;   // 沒人看見就不演了
+    let pool;
+    if (this.act === 'sleeping') {
+      // 臉被尾巴遮住／頭埋著的睡姿只能吐舌
+      const face = !['tailmask', 'buttup', 'hide_tail'].includes(gs.gecko.sleepPoseId);
+      pool = face ? ['wink', 'yawn', 'blep'] : ['blep'];
+    } else {
+      pool = ['yawn', 'eyelick', 'blep'];
+    }
+    const id = pool[(Math.random() * pool.length) | 0];
+    this.micro = { id, until: now + CONFIG.micro.durMs[id] };
+    unlockBehavior(id);
   }
 
   moveToward(tx, ty, dt, speed) {
@@ -247,6 +271,8 @@ export class Brain {
     gs.timers.nextPoopAt = now + randMs(CONFIG.poop.delayMs);   // 吃飽了，之後某個時刻會「嗯嗯」
     addAffinity(CONFIG.affinity.feed, '餵我吃蟲蟲');
     emit('toast', '「嗷嗚！！蟲蟲！好吃！！尾巴又可以變胖了嘿嘿」');
+    this.micro = { id: 'lick_lips', until: now + CONFIG.micro.durMs.lick_lips };
+    unlockBehavior('lick_lips');
     s.onCaught();
     // 吃完後回到對應好感度的反應
     const t = this.tier();
