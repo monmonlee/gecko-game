@@ -141,19 +141,8 @@ export function init(_brain, _feeder, isNew) {
     if (e.target.id === 'diary') $('diary').classList.add('hidden');
   });
 
-  // 音效開關（瀏覽器要求第一次點擊後才能出聲）
-  sound.setOn(gs.environment.soundOn !== false);
-  window.addEventListener('pointerdown', () => sound.userGesture(), { once: true });
-  const soundBtn = $('btn-sound');
-  const syncSoundBtn = () => { soundBtn.textContent = sound.isOn() ? '🔊' : '🔇'; };
-  syncSoundBtn();
-  soundBtn.addEventListener('click', () => {
-    sound.setOn(!sound.isOn());
-    gs.environment.soundOn = sound.isOn();
-    save(Date.now());
-    syncSoundBtn();
-    sound.sfx('click');
-  });
+  // 音效先整個關閉（之後想開回來：setOn(true)、恢復 userGesture 監聽、把 🔊 按鈕加回 index.html）
+  sound.setOn(false);
 
   initDebug();
   setInterval(refresh, 300);
