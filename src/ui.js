@@ -1,7 +1,8 @@
 import { CONFIG } from './config.js';
 import { on } from './events.js';
-import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior } from './state.js';
+import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior, diaryLog } from './state.js';
 import { setMode, drawWorld, poseThumb } from './render.js';
+import * as sound from './sound.js';
 
 let brain, feeder;
 let handBusy = false;                 // 手伸進缸裡的期間鎖住其他互動
@@ -13,6 +14,11 @@ const TIER_LINES = {
   familiar: '「是你呀。嗯，你出現的時候，好像都會有蟲蟲。」',
   trust:    '「今天也在呀。…在你旁邊睡覺，好像也不錯。」',
 };
+const TIER_DIARY = {
+  wary:     '那個巨人好像沒有要吃我。持續觀察中。',
+  familiar: '我發現巨人出現的時候會有蟲蟲。他應該是好人。',
+  trust:    '想了很久，決定了：在他旁邊睡覺也可以。',
+};
 
 // 在 initState 之前呼叫：先掛好事件監聽，離線結算的 toast 才收得到
 export function preInit() {
@@ -20,7 +26,12 @@ export function preInit() {
   on('affinity', ({ delta, reason }) => {
     if (delta) showToast(`${delta > 0 ? '+' : ''}${delta} 好感${reason ? `（${reason}）` : ''}`);
   });
-  on('tierup', tierId => showToast(`💛 ${TIER_LINES[tierId] ?? '「你…好像跟別人不一樣。」'}`));
+  on('tierup', tierId => {
+    showToast(`💛 ${TIER_LINES[tierId] ?? '「你…好像跟別人不一樣。」'}`);
+    sound.sfx('success');
+    if (TIER_DIARY[tierId]) diaryLog(TIER_DIARY[tierId]);
+  });
+  on('sfx', name => sound.sfx(name));
 }
 
 export function init(_brain, _feeder, isNew) {
@@ -33,6 +44,7 @@ export function init(_brain, _feeder, isNew) {
     if (handBusy) return showToast('（你的手還伸在缸裡呢）');
     const now = Date.now();
     gs.environment.lightOn = !gs.environment.lightOn;
+    sound.sfx('light');
     if (gs.environment.lightOn) brain.onLightOn(now);
     else { gs.environment.viewMode = 'normal'; brain.onLightOff(now); }
     setMode(gs.environment);
@@ -42,6 +54,7 @@ export function init(_brain, _feeder, isNew) {
 
   $('btn-nv').addEventListener('click', () => {
     if (gs.environment.lightOn) return;
+    sound.sfx('nv');
     gs.environment.viewMode = gs.environment.viewMode === 'nightvision' ? 'normal' : 'nightvision';
     setMode(gs.environment);
     save(Date.now());
@@ -68,11 +81,15 @@ export function init(_brain, _feeder, isNew) {
       env.poopPresent = false;
       addAffinity(CONFIG.affinity.poop, '幫我打掃');
       showToast('🗜️「便便被收走了！我的家又乾乾淨淨～我可是很健康的守宮！」');
+      sound.sfx('click');
+      diaryLog('傑作被巨人收走了。家裡乾乾淨淨，舒服。');
     } else if (env.shedSkinPresent) {
       env.shedSkinPresent = false;
       gs.records.shedsCollected = (gs.records.shedsCollected || 0) + 1;
       addAffinity(CONFIG.affinity.shedCollect, '幫我收皮皮');
       showToast(`📦「那是我之前的皮皮！送你收藏～（第 ${gs.records.shedsCollected} 張）」`);
+      sound.sfx('unlock');
+      diaryLog('舊皮皮被巨人收藏了。…有點害羞。');
     } else {
       showToast('「缸裡很乾淨唷，沒東西要夾～」');
     }
@@ -111,10 +128,31 @@ export function init(_brain, _feeder, isNew) {
   });
 
   // 飼養手冊
-  $('btn-help').addEventListener('click', () => $('help').classList.remove('hidden'));
+  $('btn-help').addEventListener('click', () => { sound.sfx('click'); $('help').classList.remove('hidden'); });
   $('help-close').addEventListener('click', () => $('help').classList.add('hidden'));
   $('help').addEventListener('click', e => {
     if (e.target.id === 'help') $('help').classList.add('hidden');
+  });
+
+  // 守宮日記
+  $('btn-diary').addEventListener('click', () => { sound.sfx('click'); openDiary(); });
+  $('diary-close').addEventListener('click', () => $('diary').classList.add('hidden'));
+  $('diary').addEventListener('click', e => {
+    if (e.target.id === 'diary') $('diary').classList.add('hidden');
+  });
+
+  // 音效開關（瀏覽器要求第一次點擊後才能出聲）
+  sound.setOn(gs.environment.soundOn !== false);
+  window.addEventListener('pointerdown', () => sound.userGesture(), { once: true });
+  const soundBtn = $('btn-sound');
+  const syncSoundBtn = () => { soundBtn.textContent = sound.isOn() ? '🔊' : '🔇'; };
+  syncSoundBtn();
+  soundBtn.addEventListener('click', () => {
+    sound.setOn(!sound.isOn());
+    gs.environment.soundOn = sound.isOn();
+    save(Date.now());
+    syncSoundBtn();
+    sound.sfx('click');
   });
 
   initDebug();
@@ -161,6 +199,8 @@ function tickCompanionship() {
     t.nvRewardDay = day;
     addAffinity(CONFIG.affinity.companion, '安靜的陪伴');
     showToast('「…那個巨人今天也在，不吵也不鬧。有你在，好像可以睡得比較安心。」');
+    sound.sfx('success');
+    diaryLog('巨人安安靜靜地看了我很久。有人陪的感覺，還不錯。');
   }
 }
 
@@ -210,11 +250,15 @@ function startPetting() {
       brain.petHappy();
       addAffinity(CONFIG.affinity.pet, '摸摸');
       showToast('🥰「唔嗯…摸摸的感覺…好像、還不錯…」');
+      sound.sfx('success');
+      diaryLog('被大手摸了摸頭。…其實沒有很討厭。');
       setTimeout(hideHand, CONFIG.pet.happyMs);
     } else {
       brain.petDodge();
       addAffinity(CONFIG.affinity.petFail, '被嚇到了');
       showToast('💨「哇！不要突然摸我啦！嚇死我了！」');
+      sound.sfx('fail');
+      diaryLog('突然有一隻大手伸過來！嚇死我了！');
       setTimeout(hideHand, 500);
     }
   }, CONFIG.pet.judgeDelayMs);
@@ -240,10 +284,13 @@ function startPalm() {
       unlockBehavior('heart_eyes');
       addAffinity(CONFIG.affinity.handTame, '爬上你的手');
       showToast(`🎉「…你的手，暖暖的。」牠爬上你的手心了！（第 ${gs.records.handTameCount} 次）`);
+      sound.sfx('fanfare');
+      diaryLog('我爬上了巨人的手心。暖暖的。這件事我要記很久很久。');
       setTimeout(hideHand, 4200);
     } else {
       brain.palmOff();
       showToast('「聞起來…不是蟲蟲。嗯，今天先這樣吧。」（牠轉頭走掉了，沒有扣好感）');
+      diaryLog('巨人把手掌放在我面前，攤平平的。聞了聞，不是蟲蟲。先不理他。');
       setTimeout(hideHand, 1200);
     }
   }, CONFIG.pet.palmWaitMs);
@@ -286,6 +333,23 @@ function openDex() {
     <div class="dex-grid">${actCards}</div>
     <div class="modal-note">開燈或夜視時親眼看到，才算收集到唷</div>`;
   $('dex').classList.remove('hidden');
+}
+
+// ---- 守宮日記 ----
+function openDiary() {
+  const diary = (gs.records.diary || []).slice().reverse();   // 最新的在上面
+  if (!diary.length) {
+    $('diary-body').innerHTML =
+      '<div class="chart-empty">日記本還是空的。<br>陪牠過完今天，牠會自己寫下來的 🦎</div>';
+  } else {
+    $('diary-body').innerHTML = diary.map(e => {
+      const [, m, d] = e.date.split('-');
+      return `
+        <div class="diary-day">${Number(m)} 月 ${Number(d)} 日</div>
+        ${e.lines.map(l => `<div class="diary-line">${l}</div>`).join('')}`;
+    }).join('') + '<div class="modal-note">（牠會把每天發生的事記下來，最多留 60 天）</div>';
+  }
+  $('diary').classList.remove('hidden');
 }
 
 // ---- 磅秤視窗 ----

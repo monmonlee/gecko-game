@@ -19,7 +19,8 @@
       "Bash(curl -s https://monmonlee.github.io/gecko-game/)",
       "Bash(git commit -m 'README：遊戲介紹與版權聲明 *)",
       "Bash(git commit -q -m 'v2：觀察圖鑑分頁＋21 種睡姿（含專屬畫面）＋表情與小動作系統 *)",
-      "Bash(git commit -q -m '一頁式飼養手冊：❓ 按鈕＋新玩家自動顯示 *)"
+      "Bash(git commit -q -m '一頁式飼養手冊：❓ 按鈕＋新玩家自動顯示 *)",
+      "Bash(git commit -q -m 'v3：守宮日記＋WebAudio 音效（含夜晚蟲鳴與靜音開關）＋成長體型變化 *)"
     ]
   }
 }

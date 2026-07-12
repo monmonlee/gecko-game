@@ -28,6 +28,7 @@ function defaultState(now, name) {
       poopX: 160,
       shedSkinPresent: false,
       shedX: 120,
+      soundOn: true,
     },
     timers: {
       createdAt: now,
@@ -50,6 +51,7 @@ function defaultState(now, name) {
       behaviorsUnlocked: [],
       feedCount: 0,
       shedsCollected: 0,
+      diary: [],
     },
   };
 }
@@ -119,6 +121,7 @@ export function tickWorld(now) {
     t.lastPoopAt = t.nextPoopAt;
     t.nextPoopAt = 0;
     emit('toast', '💩「嗯…嗯——好了✨（消化很順利唷）」');
+    diaryLog('在缸裡留下了一坨傑作。我很健康。', now);
   }
 
   if (!t.nextShedAt) t.nextShedAt = now + randMs(CONFIG.shed.intervalMs);
@@ -128,6 +131,7 @@ export function tickWorld(now) {
     gs.gecko.isShedding = true;
     t.shedEndAt = now + randMs(CONFIG.shed.durationMs);
     emit('toast', '🤍「身體癢癢緊緊的…我要開始脫皮了，別擔心唷」');
+    diaryLog('身體變得白白緊緊的。要脫皮了。', now);
   }
 
   // 脫完皮：缸裡留下蛻皮
@@ -138,6 +142,7 @@ export function tickWorld(now) {
     env.shedSkinPresent = true;
     env.shedX = Math.round(70 + Math.random() * 180);
     emit('toast', '✨「呼——脫完了！我現在全身滑溜溜的！」');
+    diaryLog('脫完皮了！全身滑溜溜，是全新的我。', now);
   }
 }
 
@@ -165,6 +170,7 @@ function settle(now) {
     if (target < gs.gecko.affinity) {
       gs.gecko.affinity = target;
       emit('toast', '「好久不見…那個…你是誰來著…？」');
+      diaryLog('好多天沒有人來。…只有一點點無聊而已。', now);
     }
   }
 
@@ -184,6 +190,7 @@ function settle(now) {
   if (t.lastCheckinDay !== day) {
     t.lastCheckinDay = day;
     addAffinity(CONFIG.affinity.checkin, '今天也來看我');
+    diaryLog(`巨人今天也來看我了。我在${CONFIG.locations[gs.gecko.locationId]?.label ?? '缸裡'}睡覺。`, now);
   }
 }
 
@@ -223,6 +230,27 @@ export function poseForLocation(locId, tierId) {
   return q < 0.3 ? 'flat' : q < 0.55 ? 'curl' : q < 0.8 ? 'donut' : 'tailmask';
 }
 
+// ---- 守宮日記：牠用自己的口吻記錄每一天 ----
+const dateKey = now => {
+  const d = new Date(now);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+export function diaryLog(line, now = Date.now()) {
+  const r = gs.records;
+  r.diary ??= [];
+  const key = dateKey(now);
+  let entry = r.diary[r.diary.length - 1];
+  if (!entry || entry.date !== key) {
+    entry = { date: key, lines: [] };
+    r.diary.push(entry);
+    if (r.diary.length > 60) r.diary.shift();   // 只留最近 60 天
+  }
+  if (entry.lines.includes(line) || entry.lines.length >= 10) return;
+  entry.lines.push(line);
+  save(now);
+}
+
 // 行為圖鑑：親眼看到一次就解鎖
 export function unlockBehavior(id) {
   const r = gs.records;
@@ -231,6 +259,7 @@ export function unlockBehavior(id) {
   r.behaviorsUnlocked.push(id);
   const b = CONFIG.behaviors[id];
   emit('toast', `📖 行為圖鑑＋1：${b.icon} ${b.label}`);
+  emit('sfx', 'unlock');
   save(Date.now());
 }
 
@@ -261,6 +290,7 @@ export function unlockCombo(poseId, locId) {
   if (gs.records.photosUnlocked.includes(key)) return;
   gs.records.photosUnlocked.push(key);
   emit('toast', `📷 睡姿圖鑑＋1：${CONFIG.poses[poseId].label} × ${CONFIG.locations[locId].label}`);
+  emit('sfx', 'unlock');
   addAffinity(CONFIG.affinity.unlock, '發現我的新睡姿');
   save(Date.now());
 }

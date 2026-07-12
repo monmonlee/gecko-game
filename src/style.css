@@ -285,6 +285,7 @@ html, body {
   width: 64px; height: 64px;
   z-index: 20;
   will-change: transform;
+  transform-origin: 32px 62px;   /* 以腳底為縮放基準，幼體才會踩在地上 */
 }
 #gecko svg.pv {
   position: absolute;
@@ -421,8 +422,11 @@ html, body {
 }
 @keyframes emote-float { 50% { margin-top: -3px; } }
 
-/* 脫皮：整條發白 */
-#gecko.shedding .gecko-svg { filter: brightness(1.45) saturate(.45) contrast(.92); }
+/* 幼體：色調對比較高（隨成長變沉穩） */
+#gecko.stage-juvenile svg.pv { filter: saturate(1.25) contrast(1.06); }
+
+/* 脫皮：整條發白（蓋過幼體色調） */
+#gecko.shedding svg.pv { filter: brightness(1.45) saturate(.45) contrast(.92); }
 
 /* 摸摸成功：瞇眼＋開心搖 */
 #gecko.pet-happy .body-group { animation: happy-wiggle .6s ease-in-out infinite; }
@@ -725,21 +729,25 @@ html, body {
   cursor: pointer;
 }
 
-/* ---------- 圖鑑分頁 ---------- */
-#btn-dex {
+/* ---------- HUD 右上角小按鈕列 ---------- */
+#hud-btns {
   margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+#hud-btns button {
   background: #2f2820;
   border: 1px solid var(--panel-line);
   border-radius: 8px;
   color: var(--text);
   font-family: inherit;
-  font-size: 11px;
-  padding: 4px 10px;
+  font-size: 12px;
+  padding: 4px 7px;
   cursor: pointer;
   touch-action: manipulation;
 }
 
-#dex, #help {
+#dex, #help, #diary {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, .6);
@@ -748,8 +756,8 @@ html, body {
   justify-content: center;
   z-index: 95;
 }
-#dex.hidden, #help.hidden { display: none; }
-#dex-box, #help-box {
+#dex.hidden, #help.hidden, #diary.hidden { display: none; }
+#dex-box, #help-box, #diary-box {
   background: var(--panel);
   border: 1px solid var(--panel-line);
   border-radius: 14px;
@@ -759,14 +767,14 @@ html, body {
   flex-direction: column;
   overflow: hidden;
 }
-#dex-head, #help-head {
+#dex-head, #help-head, #diary-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px 8px;
 }
-#dex-head h3, #help-head h3 { margin: 0; font-size: 14px; }
-#dex-close, #help-close {
+#dex-head h3, #help-head h3, #diary-head h3 { margin: 0; font-size: 14px; }
+#dex-close, #help-close, #diary-close {
   background: none;
   border: none;
   color: var(--text-dim);
@@ -774,10 +782,34 @@ html, body {
   cursor: pointer;
   padding: 2px 6px;
 }
-#dex-body, #help-body {
+#dex-body, #help-body, #diary-body {
   overflow-y: auto;
   padding: 0 14px 14px;
   -webkit-overflow-scrolling: touch;
+}
+
+/* 日記內文 */
+.diary-day {
+  font-size: 11px;
+  font-weight: 700;
+  color: #e8c97a;
+  margin: 12px 0 6px;
+  padding-bottom: 3px;
+  border-bottom: 1px dashed var(--panel-line);
+}
+.diary-line {
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--text);
+  margin: 0 0 5px;
+  padding-left: 14px;
+  position: relative;
+}
+.diary-line::before {
+  content: "🦎";
+  position: absolute;
+  left: 0; top: 1px;
+  font-size: 8px;
 }
 
 /* 飼養手冊內文 */

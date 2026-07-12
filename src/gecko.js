@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 import {
   gs, tierOf, addAffinity, poseForLocation, rotateSleepPose,
-  unlockCombo, sleepLocationPool, computeWeight, unlockBehavior,
+  unlockCombo, sleepLocationPool, computeWeight, unlockBehavior, diaryLog,
 } from './state.js';
 import { emit } from './events.js';
 import { drawGecko } from './render.js';
@@ -257,6 +257,7 @@ export class Brain {
       this.moveToward(w.x, Math.max(150, Math.min(216, w.y)), dt, CONFIG.feed.huntSpeed);
       if (now - s.startedAt >= CONFIG.feed.guideMinMs && dist < CONFIG.feed.pounceDist) {
         this.sub = 'pounce';
+        emit('sfx', 'pounce');
       }
     }
   }
@@ -271,8 +272,10 @@ export class Brain {
     gs.timers.nextPoopAt = now + randMs(CONFIG.poop.delayMs);   // 吃飽了，之後某個時刻會「嗯嗯」
     addAffinity(CONFIG.affinity.feed, '餵我吃蟲蟲');
     emit('toast', '「嗷嗚！！蟲蟲！好吃！！尾巴又可以變胖了嘿嘿」');
+    emit('sfx', 'eat');
     this.micro = { id: 'lick_lips', until: now + CONFIG.micro.durMs.lick_lips };
     unlockBehavior('lick_lips');
+    diaryLog('抓到蟲蟲吃掉了！尾巴應該又胖了一點，很滿意。', now);
     s.onCaught();
     // 吃完後回到對應好感度的反應
     const t = this.tier();

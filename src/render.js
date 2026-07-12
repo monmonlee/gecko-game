@@ -1,5 +1,6 @@
 import { gs } from './state.js';
 import { CONFIG } from './config.js';
+import { setDark } from './sound.js';
 
 let geckoEl, wormEl, stageEl, poopEl, shedEl, emoteEl;
 
@@ -19,6 +20,7 @@ export function setMode(env) {
   stageEl.classList.toggle('mode-light', env.lightOn);
   stageEl.classList.toggle('mode-dark', !env.lightOn && env.viewMode === 'normal');
   stageEl.classList.toggle('mode-nv', !env.lightOn && env.viewMode === 'nightvision');
+  setDark(!env.lightOn);              // 關燈才有蟲鳴
 }
 
 // 缸內物件（大便／蛻皮）的顯示同步
@@ -78,17 +80,22 @@ export function drawGecko(b) {
   }
   if (b.micro && Date.now() < b.micro.until) cls.push('micro-' + b.micro.id);
   if (tier && (act === 'active' || act === 'frozen')) cls.push('mood-low');   // 陌生／警戒期的冷淡眼神
+  cls.push('stage-' + g.stage);       // 幼體色調對比較高
   geckoEl.className = cls.join(' ');
   // 半身出窩一定頭朝外（窩口在右邊）
   const face = act === 'sleeping' && g.sleepPoseId === 'halfout' ? 1 : b.facing;
+  const sz = SIZE[g.stage] ?? 1;      // 幼體小小一隻，養大才變大
   geckoEl.style.transform =
-    `translate(${(b.x - 32 + ox).toFixed(1)}px, ${(b.y - 62 + oy).toFixed(1)}px) scaleX(${face})`;
+    `translate(${(b.x - 32 + ox).toFixed(1)}px, ${(b.y - 62 + oy).toFixed(1)}px) scale(${(sz * face).toFixed(3)}, ${sz})`;
 
-  drawEmote(b, act);
+  drawEmote(b, act, sz);
 }
 
+// 成長階段的體型（以真實天數換算）
+const SIZE = { juvenile: 0.62, subadult: 0.8, adult: 1 };
+
 // 頭頂心情小圖示
-function drawEmote(b, act) {
+function drawEmote(b, act, sz = 1) {
   let e = '';
   if (act === 'sleeping') e = '💤';
   if (act === 'frozen' || (act === 'petted' && b.sub === 'dodge')) e = '❗';
@@ -96,7 +103,7 @@ function drawEmote(b, act) {
   if (act === 'petted' && (b.sub === 'happy' || b.sub === 'onhand')) e = '❤️';
   emoteEl.textContent = e;
   emoteEl.style.display = e ? 'block' : 'none';
-  if (e) emoteEl.style.transform = `translate(${(b.x + 8).toFixed(0)}px, ${(b.y - 66).toFixed(0)}px)`;
+  if (e) emoteEl.style.transform = `translate(${(b.x + 8 * sz).toFixed(0)}px, ${(b.y - 38 - 28 * sz).toFixed(0)}px)`;
 }
 
 // 圖鑑縮圖：專屬睡姿用專屬圖，其餘用側面圖

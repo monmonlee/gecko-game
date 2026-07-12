@@ -26,8 +26,12 @@ body { background: #14110d; color: #e8ddc9; }
       <span id="g-name">—</span>
       <span id="g-stagebadge" class="badge">幼體</span>
       <span id="g-tier" class="badge" data-tier="stranger">陌生</span>
-      <button id="btn-dex">📖 圖鑑</button>
-      <button id="btn-help">❓</button>
+      <div id="hud-btns">
+        <button id="btn-dex" title="觀察圖鑑">📖</button>
+        <button id="btn-diary" title="守宮日記">📔</button>
+        <button id="btn-sound" title="音效">🔊</button>
+        <button id="btn-help" title="飼養手冊">❓</button>
+      </div>
     </div>
     <div class="bar"><span class="bl">好感</span><div class="track"><div id="bar-aff" class="fill aff"></div></div><span class="bn" id="num-aff">0</span></div>
     <div class="bar"><span class="bl">飽食</span><div class="track"><div id="bar-hun" class="fill hun"></div></div><span class="bn" id="num-hun">0</span></div>
@@ -85,6 +89,16 @@ body { background: #14110d; color: #e8ddc9; }
         <button id="dex-close">✕</button>
       </div>
       <div id="dex-body"></div>
+    </div>
+  </div>
+
+  <div id="diary" class="hidden">
+    <div id="diary-box">
+      <div id="diary-head">
+        <h3>📔 守宮日記</h3>
+        <button id="diary-close">✕</button>
+      </div>
+      <div id="diary-body"></div>
     </div>
   </div>
 
