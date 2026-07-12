@@ -52,6 +52,7 @@ function defaultState(now, name) {
       feedCount: 0,
       shedsCollected: 0,
       diary: [],
+      photos: [],
     },
   };
 }

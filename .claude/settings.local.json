@@ -21,7 +21,16 @@
       "Bash(git commit -q -m 'v2：觀察圖鑑分頁＋21 種睡姿（含專屬畫面）＋表情與小動作系統 *)",
       "Bash(git commit -q -m '一頁式飼養手冊：❓ 按鈕＋新玩家自動顯示 *)",
       "Bash(git commit -q -m 'v3：守宮日記＋WebAudio 音效（含夜晚蟲鳴與靜音開關）＋成長體型變化 *)",
-      "Bash(git commit -q -m '觀察鏡：2.2 倍鏡頭跟隨模式，近距離看牠的表情與睡姿 *)"
+      "Bash(git commit -q -m '觀察鏡：2.2 倍鏡頭跟隨模式，近距離看牠的表情與睡姿 *)",
+      "Bash(curl -sL -o src/fonts/Cubic_11.woff2 \"https://github.com/ACh-K/Cubic-11/releases/latest/download/Cubic_11.woff2\")",
+      "Bash(curl -s https://api.github.com/repos/ACh-K/Cubic-11/releases/latest)",
+      "Bash(curl -s \"https://api.github.com/repos/ACh-K/Cubic-11/contents/fonts\")",
+      "Bash(curl -s \"https://api.github.com/repos/ACh-K/Cubic-11/contents/fonts/Web\")",
+      "Bash(curl -s \"https://api.github.com/repos/ACh-K/Cubic-11/contents/fonts/web\")",
+      "Bash(curl -sL -o src/fonts/Cubic_11.woff2 \"https://raw.githubusercontent.com/ACh-K/Cubic-11/main/fonts/web/Cubic_11.woff2\")",
+      "Bash(curl -sL -o src/fonts/LICENSE-Cubic11.txt \"https://raw.githubusercontent.com/ACh-K/Cubic-11/main/LICENSE\")",
+      "Bash(curl -sL -o src/fonts/OFL-Cubic11.txt \"https://raw.githubusercontent.com/ACh-K/Cubic-11/main/OFL.txt\")",
+      "Bash(git commit -q -m '美術打磨＋拍立得相簿：Cubic 11 像素字型、光束灰塵、場景景深、植物搖曳、觀察鏡拍照收藏 *)"
     ]
   }
 }

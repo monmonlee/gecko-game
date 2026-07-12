@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 import { on } from './events.js';
 import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior, diaryLog } from './state.js';
-import { setMode, drawWorld, poseThumb, setZoom, isZoom } from './render.js';
+import { setMode, drawWorld, poseThumb, setZoom, isZoom, geckoMarkup } from './render.js';
 import * as sound from './sound.js';
 
 let brain, feeder;
@@ -150,8 +150,46 @@ export function init(_brain, _feeder, isNew) {
     if (feeder.active) return showToast('（追蟲的時候要看全景才好引導）');
     if (handBusy) return;
     setZoom(!isZoom());
-    if (isZoom()) showToast('🔍 你悄悄湊近，仔細觀察牠…');
+    if (isZoom()) showToast('🔍 你悄悄湊近，仔細觀察牠…（按 📷 可以拍照）');
     refresh();
+  });
+
+  // 拍立得：觀察鏡模式下的快門
+  $('btn-shot').addEventListener('click', () => {
+    const env = gs.environment;
+    if (!env.lightOn && env.viewMode !== 'nightvision') return showToast('太暗了，什麼都拍不到…');
+    const flash = $('flash');
+    flash.classList.remove('go');
+    void flash.offsetWidth;               // 重置動畫
+    flash.classList.add('go');
+    const t = new Date();
+    gs.records.photos ??= [];
+    gs.records.photos.unshift({
+      d: `${t.getMonth() + 1}/${t.getDate()} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`,
+      cls: document.getElementById('gecko').className,
+      f: brain.facing,
+      nv: !env.lightOn,
+      line: statusText(),
+    });
+    if (gs.records.photos.length > 24) {
+      gs.records.photos.pop();
+      showToast('（相簿滿了，最舊的一張自動掉出來）');
+    }
+    save(Date.now());
+    showToast('📸 喀嚓！收進相簿了');
+    diaryLog('今天被「喀嚓」了一下。巨人拿著黑黑的東西對著我，那是什麼？');
+  });
+
+  // 相簿
+  $('btn-album').addEventListener('click', openAlbum);
+  $('album-close').addEventListener('click', () => $('album').classList.add('hidden'));
+  $('album').addEventListener('click', e => {
+    if (e.target.id === 'album') $('album').classList.add('hidden');
+    if (e.target.classList.contains('photo-del')) {
+      gs.records.photos.splice(Number(e.target.dataset.i), 1);
+      save(Date.now());
+      openAlbum();
+    }
   });
 
   initDebug();
@@ -336,6 +374,29 @@ function openDex() {
   $('dex').classList.remove('hidden');
 }
 
+// ---- 拍立得相簿 ----
+function openAlbum() {
+  const photos = gs.records.photos || [];
+  if (!photos.length) {
+    $('album-body').innerHTML =
+      '<div class="chart-empty">相簿還是空的。<br>按 🔍 觀察鏡湊近牠，再按 📷 拍下這一刻！</div>';
+  } else {
+    $('album-body').innerHTML = `
+      <div class="album-grid">
+        ${photos.map((p, i) => `
+          <div class="photo">
+            <div class="photo-scene ${p.nv ? 'nv' : ''}">
+              <div class="${p.cls}" style="transform:translate(-50%,-50%) scale(${(1.15 * (p.f || 1)).toFixed(2)}, 1.15)">${geckoMarkup()}</div>
+            </div>
+            <div class="photo-cap">${p.d}<br>${p.line || ''}</div>
+            <button class="photo-del" data-i="${i}">✕</button>
+          </div>`).join('')}
+      </div>
+      <div class="modal-note">最多收藏 24 張，捨不得的就留著吧</div>`;
+  }
+  $('album').classList.remove('hidden');
+}
+
 // ---- 守宮日記 ----
 function openDiary() {
   const diary = (gs.records.diary || []).slice().reverse();   // 最新的在上面
@@ -420,6 +481,7 @@ export function refresh() {
   $('feed-cd').textContent = !feeder.active && left > 0 ? fmt(left) : '';
 
   $('btn-zoom').classList.toggle('on', isZoom());
+  $('btn-shot').style.display = isZoom() ? 'block' : 'none';
   const hasChore = env.poopPresent || env.shedSkinPresent;
   $('btn-clamp').disabled = !env.lightOn || !hasChore;
   $('clamp-sub').textContent = env.poopPresent ? '有便便!' : env.shedSkinPresent ? '有蛻皮!' : '';

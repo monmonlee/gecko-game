@@ -1,3 +1,10 @@
+/* 俐方體 11 號：免費開源的繁體中文像素字型（OFL 授權，見 fonts/OFL-Cubic11.txt） */
+@font-face {
+  font-family: 'Cubic 11';
+  src: url('./fonts/Cubic_11.woff2') format('woff2');
+  font-display: swap;
+}
+
 :root {
   --brown-dark: #5C3A28;
   --caramel: #C08552;
@@ -19,7 +26,7 @@ html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  font-family: "Cubic 11", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -127,8 +134,17 @@ html, body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255,255,255,.05), transparent 55%),
-    linear-gradient(#3d3a33 0 150px, #575043 150px 188px, #c9ad82 188px 100%);
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255,255,255,.06), transparent 55%),
+    radial-gradient(ellipse 140% 95% at 50% 40%, transparent 58%, rgba(0,0,0,.30) 100%),
+    linear-gradient(#3d3a33 0 147px, #48413a 147px 152px, #575043 152px 185px,
+                    #6a5a42 185px 189px, #c9ad82 189px 100%);
+}
+/* 底砂顆粒感 */
+.tank-bg::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 188px; bottom: 0;
+  background: repeating-linear-gradient(100deg, rgba(0,0,0,.05) 0 2px, transparent 2px 5px);
 }
 /* 玻璃反光 */
 .tank-bg::after {
@@ -137,6 +153,55 @@ html, body {
   right: 3px; top: 0; bottom: 0;
   width: 2px;
   background: rgba(255, 255, 255, .12);
+}
+
+/* 玻璃斜面反光（永遠在最前面，因為玻璃在觀眾和缸之間） */
+#stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 44;
+  pointer-events: none;
+  background: linear-gradient(118deg,
+    transparent 30%, rgba(255,255,255,.05) 36%, rgba(255,255,255,.10) 38%,
+    transparent 43%, transparent 56%, rgba(255,255,255,.04) 59%, transparent 63%);
+}
+
+/* 開燈的斜射光束＋光裡漂浮的灰塵 */
+#lightbeam {
+  position: absolute;
+  inset: 0;
+  z-index: 37;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .6s;
+  background: linear-gradient(115deg,
+    transparent 10%, rgba(255,224,160,.16) 22%, rgba(255,224,160,.06) 44%, transparent 58%);
+}
+#stage.mode-light #lightbeam { opacity: 1; animation: beam-breathe 6s ease-in-out infinite; }
+@keyframes beam-breathe { 50% { opacity: .72; } }
+
+#dust {
+  position: absolute;
+  inset: 0;
+  z-index: 38;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .6s;
+}
+#stage.mode-light #dust { opacity: 1; }
+#dust .mote {
+  position: absolute;
+  width: 2px; height: 2px;
+  border-radius: 50%;
+  background: rgba(255, 240, 200, .75);
+  animation: mote linear infinite;
+}
+@keyframes mote {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  15%  { opacity: .8; }
+  85%  { opacity: .4; }
+  100% { transform: translate(-14px, -40px); opacity: 0; }
 }
 
 #driftwood {
@@ -173,7 +238,9 @@ html, body {
   inset: 3px 5px;
   background: #7fb7cf;
   border-radius: 50%;
+  animation: shimmer 3.2s ease-in-out infinite;
 }
+@keyframes shimmer { 50% { filter: brightness(1.14); } }
 
 #hide {
   position: absolute;
@@ -243,7 +310,7 @@ html, body {
   background: #4c6b3c;
   border-radius: 2px;
 }
-#plant::after {               /* 葉叢 */
+#plant::after {               /* 葉叢：微風輕搖 */
   content: "";
   position: absolute;
   left: 0; top: 0;
@@ -251,7 +318,10 @@ html, body {
   background: #5d8a48;
   border-radius: 50% 60% 55% 60%;
   box-shadow: -6px 10px 0 -4px #4c7440, 10px 12px 0 -6px #6c9c52, 2px 18px 0 -8px #55813f;
+  transform-origin: 20px 60px;
+  animation: sway 5.5s ease-in-out infinite;
 }
+@keyframes sway { 50% { transform: rotate(2.4deg); } }
 
 #mossbox {
   position: absolute;
@@ -304,7 +374,7 @@ html, body {
 }
 
 /* ---------- 守宮 ---------- */
-#gecko {
+.gk {
   position: absolute;
   left: 0; top: 0;
   width: 64px; height: 64px;
@@ -312,41 +382,41 @@ html, body {
   will-change: transform;
   transform-origin: 32px 62px;   /* 以腳底為縮放基準，幼體才會踩在地上 */
 }
-#gecko svg.pv {
+.gk svg.pv {
   position: absolute;
   left: 0; bottom: 0;
   display: none;
   overflow: visible;
 }
-#gecko svg.pv-side { display: block; width: 64px; height: 32px; transform-origin: 50% 100%; }
-#gecko svg:not(.pv-side) { width: 64px; height: 64px; }
+.gk svg.pv-side { display: block; width: 64px; height: 32px; transform-origin: 50% 100%; }
+.gk svg:not(.pv-side) { width: 64px; height: 64px; }
 
 /* 專屬睡姿：隱藏側面圖、顯示自己的畫面 */
-#gecko.pose-donut .pv-side, #gecko.pose-tailmask .pv-side, #gecko.pose-chinrest .pv-side,
-#gecko.pose-soak .pv-side, #gecko.pose-draped .pv-side, #gecko.pose-standlean .pv-side,
-#gecko.pose-buttup .pv-side, #gecko.pose-glass .pv-side, #gecko.pose-headstand .pv-side,
-#gecko.pose-open .pv-side, #gecko.pose-bellyup .pv-side { display: none; }
-#gecko.pose-donut .pv-donut         { display: block; }
-#gecko.pose-tailmask .pv-tailmask   { display: block; }
-#gecko.pose-chinrest .pv-chinrest   { display: block; }
-#gecko.pose-soak .pv-soak           { display: block; }
-#gecko.pose-draped .pv-draped       { display: block; }
-#gecko.pose-standlean .pv-standlean { display: block; }
-#gecko.pose-buttup .pv-buttup       { display: block; }
-#gecko.pose-glass .pv-glass         { display: block; }
-#gecko.pose-headstand .pv-headstand { display: block; }
-#gecko.pose-open .pv-open           { display: block; }
-#gecko.pose-bellyup .pv-bellyup     { display: block; }
+.gk.pose-donut .pv-side, .gk.pose-tailmask .pv-side, .gk.pose-chinrest .pv-side,
+.gk.pose-soak .pv-side, .gk.pose-draped .pv-side, .gk.pose-standlean .pv-side,
+.gk.pose-buttup .pv-side, .gk.pose-glass .pv-side, .gk.pose-headstand .pv-side,
+.gk.pose-open .pv-side, .gk.pose-bellyup .pv-side { display: none; }
+.gk.pose-donut .pv-donut         { display: block; }
+.gk.pose-tailmask .pv-tailmask   { display: block; }
+.gk.pose-chinrest .pv-chinrest   { display: block; }
+.gk.pose-soak .pv-soak           { display: block; }
+.gk.pose-draped .pv-draped       { display: block; }
+.gk.pose-standlean .pv-standlean { display: block; }
+.gk.pose-buttup .pv-buttup       { display: block; }
+.gk.pose-glass .pv-glass         { display: block; }
+.gk.pose-headstand .pv-headstand { display: block; }
+.gk.pose-open .pv-open           { display: block; }
+.gk.pose-bellyup .pv-bellyup     { display: block; }
 
 /* 專屬圖的呼吸 */
-#gecko .breathe-g {
+.gk .breathe-g {
   transform-box: fill-box;
   transform-origin: 50% 100%;
   animation: breathe 2.6s ease-in-out infinite;
 }
 
 /* 呼吸 */
-#gecko .body-group {
+.gk .body-group {
   transform-origin: 32px 26px;
   animation: breathe 2.6s ease-in-out infinite;
 }
@@ -357,83 +427,83 @@ html, body {
 .pv .mouth-open, .pv .t-blep, .pv .t-lick, .pv .t-lips { display: none; }
 .pv .d-wink-open { display: none; }
 
-#gecko.eyes-closed .eye { display: none; }
-#gecko.eyes-closed .eye-lid { display: block; }
+.gk.eyes-closed .eye { display: none; }
+.gk.eyes-closed .eye-lid { display: block; }
 
-#gecko.state-frozen .eye {
+.gk.state-frozen .eye {
   transform: scale(1.28);
   transform-box: fill-box;
   transform-origin: center;
 }
-#gecko.state-frozen .pupil {          /* 嚇到瞳孔縮小 */
+.gk.state-frozen .pupil {          /* 嚇到瞳孔縮小 */
   transform: scale(.62);
   transform-box: fill-box;
   transform-origin: center;
 }
-#gecko.state-frozen .body-group { animation-play-state: paused; }
+.gk.state-frozen .body-group { animation-play-state: paused; }
 
 /* 獵人鎖定眼：瞳孔縮成細直線 */
-#gecko.hunt-focus .pupil {
+.gk.hunt-focus .pupil {
   transform: scaleX(.32);
   transform-box: fill-box;
   transform-origin: center;
 }
 
 /* 撲食血盆大口／打哈欠 */
-#gecko.mouth-wide .mouth, #gecko.micro-yawn .mouth { display: none; }
-#gecko.mouth-wide .mouth-open, #gecko.micro-yawn .mouth-open { display: block; }
-#gecko.micro-yawn .eye { display: none; }
-#gecko.micro-yawn .eye-lid { display: block; }
+.gk.mouth-wide .mouth, .gk.micro-yawn .mouth { display: none; }
+.gk.mouth-wide .mouth-open, .gk.micro-yawn .mouth-open { display: block; }
+.gk.micro-yawn .eye { display: none; }
+.gk.micro-yawn .eye-lid { display: block; }
 
 /* 摸摸成功：幸福瞇眼 ˘ᴗ˘ */
-#gecko.pet-happy .eye { display: none; }
-#gecko.pet-happy .eye-happy { display: block; }
+.gk.pet-happy .eye { display: none; }
+.gk.pet-happy .eye-happy { display: block; }
 
 /* 上手大獎：愛心眼 */
-#gecko.onhand .pupil { display: none; }
-#gecko.onhand .eye-heart { display: block; }
+.gk.onhand .pupil { display: none; }
+.gk.onhand .eye-heart { display: block; }
 
 /* 陌生／警戒期的冷淡眼神（上眼皮壓低） */
-#gecko.mood-low .eye-flat { display: block; }
+.gk.mood-low .eye-flat { display: block; }
 
 /* 小動作：舌頭三件組 */
-#gecko.micro-blep .t-blep, #gecko.pose-blep_sleep .t-blep { display: block; }
-#gecko.micro-eyelick .t-lick { display: block; }
-#gecko.micro-lick_lips .t-lips { display: block; }
+.gk.micro-blep .t-blep, .gk.pose-blep_sleep .t-blep { display: block; }
+.gk.micro-eyelick .t-lick { display: block; }
+.gk.micro-lick_lips .t-lips { display: block; }
 
 /* 睡覺偷睜一隻眼（側面）＋甜甜圈的一睜一閉 */
-#gecko.micro-wink .eye { display: block; }
-#gecko.micro-wink .eye-lid { display: none; }
-#gecko.micro-wink .d-wink-open { display: block; }
-#gecko.micro-wink .d-wink-lid { display: none; }
+.gk.micro-wink .eye { display: block; }
+.gk.micro-wink .eye-lid { display: none; }
+.gk.micro-wink .d-wink-open { display: block; }
+.gk.micro-wink .d-wink-lid { display: none; }
 
 /* 走路：四肢擺動 */
 .leg { transform-box: fill-box; transform-origin: 50% 12%; }
-#gecko.walking .leg-f1, #gecko.walking .leg-b2 { animation: swing .34s ease-in-out infinite; }
-#gecko.walking .leg-b1, #gecko.walking .leg-f2 { animation: swing .34s ease-in-out infinite reverse; }
-#gecko.running .leg-f1, #gecko.running .leg-b2 { animation: swing .16s ease-in-out infinite; }
-#gecko.running .leg-b1, #gecko.running .leg-f2 { animation: swing .16s ease-in-out infinite reverse; }
+.gk.walking .leg-f1, .gk.walking .leg-b2 { animation: swing .34s ease-in-out infinite; }
+.gk.walking .leg-b1, .gk.walking .leg-f2 { animation: swing .34s ease-in-out infinite reverse; }
+.gk.running .leg-f1, .gk.running .leg-b2 { animation: swing .16s ease-in-out infinite; }
+.gk.running .leg-b1, .gk.running .leg-f2 { animation: swing .16s ease-in-out infinite reverse; }
 @keyframes swing {
   0%, 100% { transform: rotate(16deg); }
   50% { transform: rotate(-16deg); }
 }
 
 /* 側面圖睡姿（以變形近似，之後換 sprite） */
-#gecko.pose-curl .gecko-svg  { transform: scaleY(.85) scaleX(.9); }
-#gecko.pose-flat .gecko-svg  { transform: scaleY(.72) scaleX(1.08); }
-#gecko.pose-hide_tail .gecko-svg { transform: scaleY(.9); }
-#gecko.pose-halfout .gecko-svg { transform: scaleY(.88); }
-#gecko.pose-blep_sleep .gecko-svg { transform: scaleY(.8); }
+.gk.pose-curl .gecko-svg  { transform: scaleY(.85) scaleX(.9); }
+.gk.pose-flat .gecko-svg  { transform: scaleY(.72) scaleX(1.08); }
+.gk.pose-hide_tail .gecko-svg { transform: scaleY(.9); }
+.gk.pose-halfout .gecko-svg { transform: scaleY(.88); }
+.gk.pose-blep_sleep .gecko-svg { transform: scaleY(.8); }
 
 /* 喝水：低頭小口啜 */
-#gecko.drinking .gecko-svg { animation: sip 1.2s ease-in-out infinite; }
+.gk.drinking .gecko-svg { animation: sip 1.2s ease-in-out infinite; }
 @keyframes sip { 50% { transform: translateY(1.5px) rotate(3deg); } }
 
-#gecko.pose-perch .gecko-svg { transform: scaleY(.8); }
-#gecko.pose-moss .gecko-svg  { transform: scaleY(.82) scaleX(.88); }
-#gecko.pose-belly .gecko-svg { transform: scaleY(.68) scaleX(1.06); }
-#gecko.pose-leaf .gecko-svg  { transform: scaleY(.85) scaleX(.9); }
-#gecko.pose-roof .gecko-svg  { transform: scaleY(.82); }
+.gk.pose-perch .gecko-svg { transform: scaleY(.8); }
+.gk.pose-moss .gecko-svg  { transform: scaleY(.82) scaleX(.88); }
+.gk.pose-belly .gecko-svg { transform: scaleY(.68) scaleX(1.06); }
+.gk.pose-leaf .gecko-svg  { transform: scaleY(.85) scaleX(.9); }
+.gk.pose-roof .gecko-svg  { transform: scaleY(.82); }
 
 /* ---------- 頭頂心情圖示 ---------- */
 #emote {
@@ -448,24 +518,24 @@ html, body {
 @keyframes emote-float { 50% { margin-top: -3px; } }
 
 /* 幼體：色調對比較高（隨成長變沉穩） */
-#gecko.stage-juvenile svg.pv { filter: saturate(1.25) contrast(1.06); }
+.gk.stage-juvenile svg.pv { filter: saturate(1.25) contrast(1.06); }
 
 /* 脫皮：整條發白（蓋過幼體色調） */
-#gecko.shedding svg.pv { filter: brightness(1.45) saturate(.45) contrast(.92); }
+.gk.shedding svg.pv { filter: brightness(1.45) saturate(.45) contrast(.92); }
 
 /* 摸摸成功：瞇眼＋開心搖 */
-#gecko.pet-happy .body-group { animation: happy-wiggle .6s ease-in-out infinite; }
+.gk.pet-happy .body-group { animation: happy-wiggle .6s ease-in-out infinite; }
 @keyframes happy-wiggle {
   25% { transform: rotate(1.6deg) scaleY(1.03); }
   75% { transform: rotate(-1.6deg); }
 }
 
 /* 聞手心 */
-#gecko.sniffing .gecko-svg { animation: sniff .5s ease-in-out infinite; }
+.gk.sniffing .gecko-svg { animation: sniff .5s ease-in-out infinite; }
 @keyframes sniff { 50% { transform: translateY(-1.5px) rotate(-2deg); } }
 
 /* 站上手心 */
-#gecko.onhand .gecko-svg { transform: translateY(-4px); }
+.gk.onhand .gecko-svg { transform: translateY(-4px); }
 
 /* ---------- 手 ---------- */
 #hand {
@@ -772,7 +842,7 @@ html, body {
   touch-action: manipulation;
 }
 
-#dex, #help, #diary {
+#dex, #help, #diary, #album {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, .6);
@@ -781,8 +851,8 @@ html, body {
   justify-content: center;
   z-index: 95;
 }
-#dex.hidden, #help.hidden, #diary.hidden { display: none; }
-#dex-box, #help-box, #diary-box {
+#dex.hidden, #help.hidden, #diary.hidden, #album.hidden { display: none; }
+#dex-box, #help-box, #diary-box, #album-box {
   background: var(--panel);
   border: 1px solid var(--panel-line);
   border-radius: 14px;
@@ -792,14 +862,14 @@ html, body {
   flex-direction: column;
   overflow: hidden;
 }
-#dex-head, #help-head, #diary-head {
+#dex-head, #help-head, #diary-head, #album-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px 8px;
 }
-#dex-head h3, #help-head h3, #diary-head h3 { margin: 0; font-size: 14px; }
-#dex-close, #help-close, #diary-close {
+#dex-head h3, #help-head h3, #diary-head h3, #album-head h3 { margin: 0; font-size: 14px; }
+#dex-close, #help-close, #diary-close, #album-close {
   background: none;
   border: none;
   color: var(--text-dim);
@@ -807,7 +877,7 @@ html, body {
   cursor: pointer;
   padding: 2px 6px;
 }
-#dex-body, #help-body, #diary-body {
+#dex-body, #help-body, #diary-body, #album-body {
   overflow-y: auto;
   padding: 0 14px 14px;
   -webkit-overflow-scrolling: touch;
@@ -900,6 +970,95 @@ html, body {
 .dex-quote { font-size: 8.5px; color: var(--text-dim); margin-top: 2px; min-height: 20px; line-height: 1.4; }
 .dexcard.locked .dex-art { filter: brightness(0); opacity: .45; }
 .dexcard.locked .dex-name, .dexcard.locked .dex-quote { color: #5a4f3e; }
+
+/* ---------- 拍立得相簿 ---------- */
+#btn-shot {
+  position: absolute;
+  left: 7px; bottom: 7px;
+  z-index: 65;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(12, 10, 6, .72);
+  border: 1px solid #5a4b34;
+  color: #f0e6cf;
+  font-size: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+  display: none;
+}
+
+#flash {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+#flash.go { animation: flash .4s ease-out; }
+@keyframes flash { 0% { opacity: .9; } 100% { opacity: 0; } }
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding-top: 6px;
+}
+.photo {
+  position: relative;
+  background: #f2ecdc;
+  padding: 6px 6px 6px;
+  border-radius: 2px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .45);
+}
+.photo:nth-child(3n)   { transform: rotate(1.6deg); }
+.photo:nth-child(3n+1) { transform: rotate(-1.4deg); }
+.photo-scene {
+  position: relative;
+  height: 86px;
+  overflow: hidden;
+  border-radius: 2px;
+  background:
+    radial-gradient(ellipse 130% 70% at 50% 0%, rgba(255,255,255,.07), transparent 55%),
+    linear-gradient(#3d3a33 0 52%, #575043 52% 72%, #c9ad82 72% 100%);
+}
+.photo-scene .gk {
+  position: absolute;
+  left: 50%; top: 52%;
+  width: 64px; height: 64px;
+}
+.photo-scene.nv {
+  filter: brightness(1.45) grayscale(1) sepia(1) hue-rotate(55deg) saturate(3) contrast(1.05);
+}
+.photo-scene.nv::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(transparent 0 2px, rgba(0, 0, 0, .2) 2px 3px);
+}
+.photo-cap {
+  margin-top: 5px;
+  font-size: 9px;
+  line-height: 1.5;
+  color: #4a4032;
+  min-height: 24px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.photo-del {
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 18px; height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(30, 24, 16, .55);
+  color: #f0e6cf;
+  font-size: 10px;
+  cursor: pointer;
+  line-height: 1;
+}
 
 /* ---------- Debug ---------- */
 #debug {

@@ -12,9 +12,30 @@ export function initScene() {
   poopEl = document.getElementById('poop');
   shedEl = document.getElementById('shedskin');
   emoteEl = document.getElementById('emote');
-  geckoEl.innerHTML = sideSVG() + Object.values(POSE_SVGS).join('');
+  geckoEl.innerHTML = geckoMarkup();
   wormEl.innerHTML = wormSVG();
   makeNoise();
+  makeDust();
+}
+
+// 守宮的完整 SVG 組（側面＋所有專屬睡姿）——主畫面與拍立得共用
+export function geckoMarkup() {
+  return sideSVG() + Object.values(POSE_SVGS).join('');
+}
+
+// 開燈光束裡漂浮的灰塵
+function makeDust() {
+  const box = document.getElementById('dust');
+  for (let i = 0; i < 14; i++) {
+    const m = document.createElement('span');
+    m.className = 'mote';
+    m.style.left = 8 + Math.random() * 60 + '%';
+    m.style.top = 25 + Math.random() * 62 + '%';
+    m.style.animationDuration = 5 + Math.random() * 7 + 's';
+    m.style.animationDelay = -Math.random() * 9 + 's';
+    if (Math.random() < 0.4) m.style.transform = 'scale(.6)';
+    box.appendChild(m);
+  }
 }
 
 // ---- 觀察鏡：鏡頭放大並跟著守宮移動 ----
@@ -79,7 +100,7 @@ export function drawGecko(b) {
     (act === 'hunting' && b.sub === 'pounce') ||
     (act === 'hiding' && b.sub === 'retreat' && b.speed > 70);
 
-  const cls = ['sprite'];
+  const cls = ['gk', 'sprite'];
   let ox = 0, oy = 0;
   if (act === 'sleeping') {
     cls.push('eyes-closed', 'pose-' + g.sleepPoseId);

@@ -29,6 +29,7 @@ body { background: #14110d; color: #e8ddc9; }
       <div id="hud-btns">
         <button id="btn-dex" title="觀察圖鑑">📖</button>
         <button id="btn-diary" title="守宮日記">📔</button>
+        <button id="btn-album" title="拍立得相簿">📸</button>
         <button id="btn-help" title="飼養手冊">❓</button>
       </div>
     </div>
@@ -49,18 +50,22 @@ body { background: #14110d; color: #e8ddc9; }
         <div id="water"></div>
         <div id="poop"></div>
         <div id="shedskin"></div>
-        <div id="gecko"></div>
+        <div id="gecko" class="gk"></div>
         <div id="emote"></div>
         <div id="hide"></div>
         <div id="hand"><span>🤚</span></div>
         <div id="worm"></div>
       </div>
       <div id="lamp"></div>
+      <div id="lightbeam"></div>
+      <div id="dust"></div>
       <div id="darkness"></div>
       <div id="noise"></div>
       <div id="scanlines"></div>
       <div id="rec">REC <span class="dot">●</span></div>
+      <div id="flash"></div>
       <button id="btn-zoom" title="觀察鏡">🔍</button>
+      <button id="btn-shot" title="拍照">📷</button>
     </div>
     <div id="toasts"></div>
   </div>
@@ -99,6 +104,16 @@ body { background: #14110d; color: #e8ddc9; }
         <button id="diary-close">✕</button>
       </div>
       <div id="diary-body"></div>
+    </div>
+  </div>
+
+  <div id="album" class="hidden">
+    <div id="album-box">
+      <div id="album-head">
+        <h3>📸 拍立得相簿</h3>
+        <button id="album-close">✕</button>
+      </div>
+      <div id="album-body"></div>
     </div>
   </div>
 
