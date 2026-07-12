@@ -156,7 +156,15 @@ export function init(_brain, _feeder, isNew) {
   // 音效（嗶嗶聲）依需求維持關閉；BGM（程式生成的音樂盒搖籃曲）用 🎵 開關
   sound.setSfxOn(false);
   sound.setMusicOn(gs.environment.musicOn !== false);
-  window.addEventListener('pointerdown', () => sound.userGesture(), { once: true });
+  // iOS 對「哪種手勢算數」很挑，三種都掛（userGesture 可重複呼叫）
+  let toldMusic = false;
+  const gesture = () => {
+    sound.userGesture();
+    if (!toldMusic && sound.isMusicOn()) { toldMusic = true; showToast('🎵 ♪～'); }
+  };
+  window.addEventListener('pointerup', gesture, { once: true });
+  window.addEventListener('touchend', gesture, { once: true });
+  window.addEventListener('click', gesture, { once: true });
   const musicBtn = $('btn-sound');
   const syncMusicBtn = () => { musicBtn.textContent = sound.isMusicOn() ? '🎵' : '🔇'; };
   syncMusicBtn();

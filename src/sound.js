@@ -17,9 +17,9 @@ function ensure() {
     master.connect(ctx.destination);
     musicFilter = ctx.createBiquadFilter();
     musicFilter.type = 'lowpass';
-    musicFilter.frequency.value = dark ? 650 : 2400;
+    musicFilter.frequency.value = dark ? 1200 : 2600;
     musicGain = ctx.createGain();
-    musicGain.gain.value = 0.75;
+    musicGain.gain.value = 1.6;
     musicGain.connect(musicFilter);
     musicFilter.connect(master);
   }
@@ -29,7 +29,31 @@ function ensure() {
 
 export function userGesture() {
   ready = true;
+  unlockMediaSession();
   if (ensure()) { startCrickets(); startMusic(); }
+}
+
+// iOS：側邊靜音鍵撥下時 WebAudio 會被消音；播一條無聲的 <audio> 循環
+// 可以把音訊 session 切成「媒體播放」模式，繞過靜音鍵（標準做法）
+let unlocked = false;
+function unlockMediaSession() {
+  if (unlocked) return;
+  unlocked = true;
+  try {
+    const len = 4410;                       // 0.1 秒的無聲 wav，程式現做
+    const buf = new ArrayBuffer(44 + len * 2);
+    const v = new DataView(buf);
+    const wr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    wr(0, 'RIFF'); v.setUint32(4, 36 + len * 2, true); wr(8, 'WAVE'); wr(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 44100, true); v.setUint32(28, 88200, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    wr(36, 'data'); v.setUint32(40, len * 2, true);
+    const a = new Audio(URL.createObjectURL(new Blob([buf], { type: 'audio/wav' })));
+    a.loop = true;
+    a.volume = 0.01;
+    a.setAttribute('playsinline', '');
+    a.play().catch(() => {});
+  } catch (e) { /* 不支援就算了 */ }
 }
 
 export function setSfxOn(v) { sfxOn = v; }
@@ -45,7 +69,7 @@ export function setDark(v) {
   dark = v;
   if (musicFilter) {
     musicFilter.frequency.cancelScheduledValues(ctx.currentTime);
-    musicFilter.frequency.linearRampToValueAtTime(v ? 650 : 2400, ctx.currentTime + 1.2);
+    musicFilter.frequency.linearRampToValueAtTime(v ? 1200 : 2600, ctx.currentTime + 1.2);
   }
 }
 
@@ -99,14 +123,14 @@ function pluck(freq, t) {
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = 'sine'; o.frequency.value = freq;
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(0.15, t + 0.012);
+  g.gain.linearRampToValueAtTime(0.22, t + 0.012);
   g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
   o.connect(g); g.connect(musicGain);
   o.start(t); o.stop(t + 1.6);
   const o2 = ctx.createOscillator(), g2 = ctx.createGain();
   o2.type = 'sine'; o2.frequency.value = freq * 2;
   g2.gain.setValueAtTime(0, t);
-  g2.gain.linearRampToValueAtTime(0.045, t + 0.008);
+  g2.gain.linearRampToValueAtTime(0.07, t + 0.008);
   g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
   o2.connect(g2); g2.connect(musicGain);
   o2.start(t); o2.stop(t + 0.8);
@@ -119,8 +143,8 @@ function pad(freqs, t, durBeats) {
     const o = ctx.createOscillator(), g = ctx.createGain();
     o.type = 'triangle'; o.frequency.value = f;
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(0.026, t + 0.7);
-    g.gain.setValueAtTime(0.026, t + dur - 0.4);
+    g.gain.linearRampToValueAtTime(0.05, t + 0.7);
+    g.gain.setValueAtTime(0.05, t + dur - 0.4);
     g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.25);
     o.connect(g); g.connect(musicGain);
     o.start(t); o.stop(t + dur + 0.4);
