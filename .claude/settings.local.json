@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Bash(git config *)",
+      "Bash(ssh -T git@github.com)",
+      "Bash(brew install *)",
+      "Bash(node /private/tmp/claude-501/-Users-mangtinglee-Desktop-gecko-game/710af704-3156-415c-a1cd-74114e9dd73f/scratchpad/gen-icons.mjs public)",
+      "Bash(npm run *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m '守宮陪伴放置遊戲：核心玩法＋互動＋手機 PWA *)"
+    ]
+  }
+}

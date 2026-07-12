@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#14110d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="守宮陪伴">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<title>守宮陪伴 🦎</title>
+<style>
+/* 保底樣式：就算主要樣式還沒載入，也不要讓選單、蟲、手掌攤在畫面上 */
+#handmenu.hidden, #modal.hidden { display: none; }
+#hand, #worm, #poop, #shedskin { display: none; }
+body { background: #14110d; color: #e8ddc9; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hud">
+    <div id="hud-top">
+      <span id="g-name">—</span>
+      <span id="g-stagebadge" class="badge">幼體</span>
+      <span id="g-tier" class="badge" data-tier="stranger">陌生</span>
+    </div>
+    <div class="bar"><span class="bl">好感</span><div class="track"><div id="bar-aff" class="fill aff"></div></div><span class="bn" id="num-aff">0</span></div>
+    <div class="bar"><span class="bl">飽食</span><div class="track"><div id="bar-hun" class="fill hun"></div></div><span class="bn" id="num-hun">0</span></div>
+    <div id="status">…</div>
+  </header>
+
+  <div id="stage-wrap">
+    <div id="stage">
+      <div id="world">
+        <div class="tank-bg"></div>
+        <div id="heatmat"></div>
+        <div id="plant"></div>
+        <div id="rock"></div>
+        <div id="mossbox"></div>
+        <div id="driftwood"></div>
+        <div id="water"></div>
+        <div id="poop"></div>
+        <div id="shedskin"></div>
+        <div id="gecko"></div>
+        <div id="hide"></div>
+        <div id="hand"><span>🤚</span></div>
+        <div id="worm"></div>
+      </div>
+      <div id="lamp"></div>
+      <div id="darkness"></div>
+      <div id="noise"></div>
+      <div id="scanlines"></div>
+      <div id="rec">REC <span class="dot">●</span></div>
+    </div>
+    <div id="toasts"></div>
+  </div>
+
+  <nav id="buttons">
+    <button id="btn-light"><span class="ico">🔦</span><span class="lbl">燈光</span><span class="sub"></span></button>
+    <button id="btn-nv"><span class="ico">🥽</span><span class="lbl">夜視</span><span class="sub"></span></button>
+    <button id="btn-feed"><span class="ico">🪱</span><span class="lbl">餵食</span><span class="sub" id="feed-cd"></span></button>
+    <button id="btn-clamp"><span class="ico">🗜️</span><span class="lbl">夾子</span><span class="sub" id="clamp-sub"></span></button>
+    <button id="btn-hand"><span class="ico">🖐️</span><span class="lbl">手</span><span class="sub"></span></button>
+    <button id="btn-scale"><span class="ico">⚖️</span><span class="lbl">磅秤</span><span class="sub"></span></button>
+  </nav>
+
+  <div id="handmenu" class="hidden">
+    <button id="pet-mode">🤚 摸摸牠<span>好感越高越容易成功</span></button>
+    <button id="palm-mode">🫴 手心朝上<span>好感 50 以上牠才可能爬上來</span></button>
+    <button id="hand-cancel">先不要好了</button>
+  </div>
+
+  <div id="modal" class="hidden"><div id="modal-box"></div></div>
+
+  <div id="debug"></div>
+</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
