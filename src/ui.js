@@ -521,7 +521,17 @@ function statusText() {
     case 'hunting':  return brain.sub === 'pounce' ? '💨「就是現在——！」'
                           : brain.sub === 'crouch' ? '🐾「壓低…屏住呼吸…」'
                           : '🎯「蟲蟲…蟲蟲…站住…」';
-    case 'active':   return (brain.sub === 'drink' ? '💧「咕嚕咕嚕…水好好喝」' : `🐾「巡邏巡邏～這裡都是我的地盤」${shed}`);
+    case 'active':   return {
+      drink:   '💧「咕嚕咕嚕…水好好喝」',
+      rest:    '🪑「就…坐一下。發個呆。」',
+      lookout: '🔭「（前腳撐高高）外面的世界…看起來好大」',
+      stretch: '🙆「嗯——伸個懶腰——」',
+      dig:     '⛏️「挖挖挖…總覺得這裡可以挖出什麼」',
+      hop:     '🦘「（心情好，原地彈了一下！）」',
+      zoom:    '💨「衝刺——！！（不要問為什麼）」',
+      surf_go: '🧗「我要去那面牆…」',
+      surf:    '🧗「放我出去！我要出去玩！（扒玻璃）」',
+    }[brain.sub] ?? `🐾「巡邏巡邏～這裡都是我的地盤」${shed}`;
     case 'petted':   return {
       wait:    '🤚「！？那隻大手要幹嘛…」',
       happy:   '🥰「唔嗯…再摸一下下也可以…」',

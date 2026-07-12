@@ -68,7 +68,7 @@ export class Brain {
   maybeMicro(now) {
     if (this.micro && now >= this.micro.until) this.micro = null;
     if (this.micro || now < this.microAt) return;
-    if (this.act !== 'sleeping' && !(this.act === 'active' && this.sub === 'idle')) return;
+    if (this.act !== 'sleeping' && !(this.act === 'active' && ['idle', 'rest'].includes(this.sub))) return;
     this.microAt = now + randMs(CONFIG.micro.gapMs);
     const env = gs.environment;
     if (!env.lightOn && env.viewMode !== 'nightvision') return;   // 沒人看見就不演了
@@ -158,6 +158,32 @@ export class Brain {
     }
   }
 
+  visible() {
+    return gs.environment.lightOn || gs.environment.viewMode === 'nightvision';
+  }
+
+  // 發呆結束後決定下一個日常行為：走路以外還會坐下、張望、伸懶腰、挖沙、彈跳、爬玻璃、衝刺
+  startIdleAction() {
+    const pool = ['walk', 'walk', 'walk', 'walk', 'rest', 'rest', 'lookout', 'lookout', 'stretch', 'dig', 'hop'];
+    if (!gs.environment.lightOn) pool.push('zoom', 'zoom', 'surf', 'surf');   // 夜行性的招牌行為
+    else if (this.tier() === 'trust') pool.push('zoom', 'surf');
+    const a = pick(pool);
+    if (a === 'walk') {
+      const locs = Object.keys(CONFIG.locations).filter(id => id !== gs.gecko.locationId);
+      this.walkToLoc(pick(locs), CONFIG.walkSpeed, 'walk');
+    } else if (a === 'zoom') {
+      const locs = Object.keys(CONFIG.locations).filter(id => id !== gs.gecko.locationId);
+      this.walkToLoc(pick(locs), CONFIG.runSpeed * 1.1, 'zoom');
+      if (this.visible()) unlockBehavior('zoom');
+    } else if (a === 'surf') {
+      this.walkToLoc('glass', CONFIG.walkSpeed, 'surf_go');
+    } else {
+      this.sub = a;
+      this.timer = randMs(CONFIG.idleAct.durS[a].map(s => s * 1000)) / 1000;
+      if (this.visible()) unlockBehavior(a);
+    }
+  }
+
   updateActive(dt, now) {
     if (gs.environment.lightOn && this.sub === 'idle' && now >= this.sleepAt) {
       this.goSleep();
@@ -165,9 +191,22 @@ export class Brain {
     }
     if (this.sub === 'idle') {
       this.timer -= dt;
-      if (this.timer <= 0) {
-        const locs = Object.keys(CONFIG.locations).filter(id => id !== gs.gecko.locationId);
-        this.walkToLoc(pick(locs), CONFIG.walkSpeed, 'walk');
+      if (this.timer <= 0) this.startIdleAction();
+    } else if (['rest', 'lookout', 'stretch', 'dig', 'hop', 'surf'].includes(this.sub)) {
+      this.timer -= dt;
+      if (this.timer <= 0) { this.sub = 'idle'; this.timer = randMs(CONFIG.night.pauseMs) / 1000; }
+    } else if (this.sub === 'surf_go' || this.sub === 'zoom') {
+      if (this.moveToward(this.tx, this.ty, dt, this.speed)) {
+        gs.gecko.locationId = this.pendingLoc;
+        if (this.sub === 'surf_go') {
+          this.sub = 'surf';
+          this.timer = randMs(CONFIG.idleAct.durS.surf.map(s => s * 1000)) / 1000;
+          this.facing = 1;             // 面向右邊的玻璃
+          if (this.visible()) unlockBehavior('surf');
+        } else {
+          this.sub = 'idle';
+          this.timer = randMs(CONFIG.night.pauseMs) / 1000;
+        }
       }
     } else if (this.sub === 'walk') {
       if (this.moveToward(this.tx, this.ty, dt, this.speed)) {

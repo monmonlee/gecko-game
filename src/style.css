@@ -547,6 +547,38 @@ html, body {
 .gk.crouch .gecko-svg { transform: scaleY(.72) translateY(1.5px); transition: transform .1s; }
 .gk.crouch .leg { transform: rotate(24deg); }
 
+/* ---------- 日常行為 ---------- */
+/* 攤坐發呆：整隻放低 */
+.gk.act-rest .gecko-svg { transform: scaleY(.8) translateY(1px); transition: transform .3s; }
+
+/* 抬頭張望：前半身撐高 */
+.gk.act-lookout .gecko-svg { transform: rotate(-11deg) translateY(-1.5px); transition: transform .3s; }
+.gk.act-lookout .leg-f1, .gk.act-lookout .leg-f2 { transform: rotate(-8deg) scaleY(1.15); }
+
+/* 伸懶腰：前腳伸長長、身體拉長 */
+.gk.act-stretch .gecko-svg { transform: scaleX(1.07) scaleY(.86); transition: transform .25s; }
+.gk.act-stretch .leg-f1, .gk.act-stretch .leg-f2 { transform: rotate(-36deg); transition: transform .25s; }
+
+/* 挖挖手：前腳快速刨沙 */
+.gk.act-dig .gecko-svg { transform: rotate(4deg); }
+.gk.act-dig .leg-f1 { animation: dig .18s ease-in-out infinite; }
+.gk.act-dig .leg-f2 { animation: dig .18s ease-in-out infinite reverse; }
+@keyframes dig { 0%, 100% { transform: rotate(8deg); } 50% { transform: rotate(-42deg); } }
+
+/* 開心彈跳 */
+.gk.act-hop .gecko-svg { animation: hop .42s ease-out 2; }
+@keyframes hop {
+  0%, 100% { transform: translateY(0); }
+  15% { transform: scaleY(.85); }
+  45% { transform: translateY(-7px); }
+  75% { transform: translateY(0) scaleY(.94); }
+}
+
+/* 爬玻璃：立起來扒著玻璃（腳一直划） */
+.gk.act-surf .gecko-svg { transform: rotate(-62deg) translate(5px, -7px); transition: transform .3s; }
+.gk.act-surf .leg-f1, .gk.act-surf .leg-b2 { animation: swing .3s ease-in-out infinite; }
+.gk.act-surf .leg-b1, .gk.act-surf .leg-f2 { animation: swing .3s ease-in-out infinite reverse; }
+
 /* 側面圖睡姿（以變形近似，之後換 sprite） */
 .gk.pose-curl .gecko-svg  { transform: scaleY(.85) scaleX(.9); }
 .gk.pose-flat .gecko-svg  { transform: scaleY(.72) scaleX(1.08); }

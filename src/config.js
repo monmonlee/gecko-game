@@ -122,6 +122,17 @@ export const CONFIG = {
     blep:       { icon: '😛', label: '吐舌頭',           desc: '舌頭忘記收回去了（本人沒有發現）' },
     lick_lips:  { icon: '😋', label: '吃飽舔嘴',         desc: '蟲蟲好吃，嘴巴要舔乾淨' },
     heart_eyes: { icon: '😍', label: '愛心眼',           desc: '在你的手心上，眼睛裡有小愛心' },
+    hop:        { icon: '🦘', label: '開心彈跳',         desc: '心情好的時候會突然彈一下' },
+    rest:       { icon: '🪑', label: '攤坐發呆',         desc: '整隻趴下來，就…發個呆' },
+    lookout:    { icon: '🔭', label: '抬頭張望',         desc: '前腳撐高高，觀察外面的世界' },
+    stretch:    { icon: '🙆', label: '伸懶腰',           desc: '前腳伸長長、屁股翹高高' },
+    dig:        { icon: '⛏️', label: '挖挖手',           desc: '前腳快速刨沙，想挖個洞' },
+    zoom:       { icon: '💨', label: '深夜衝刺',         desc: '半夜突然全速衝過整個缸（原因不明）' },
+    surf:       { icon: '🧗', label: '爬玻璃',           desc: '扒著玻璃想出去玩，肚皮全貼在上面' },
+  },
+
+  idleAct: {                            // 各種日常行為的持續秒數
+    durS: { rest: [6, 12], lookout: [4, 8], stretch: [1.6, 2.2], dig: [2.5, 4], hop: [0.85, 0.85], surf: [4, 7] },
   },
 
   micro: {                              // 睡覺／發呆時的隨機小動作

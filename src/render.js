@@ -93,10 +93,11 @@ export function drawGecko(b) {
   const act = g.currentActivity;
   const tier = g.affinity < 50;
   const walking =
-    (act === 'active' && (b.sub === 'walk' || b.sub === 'bedtime')) ||
+    (act === 'active' && ['walk', 'bedtime', 'surf_go', 'zoom'].includes(b.sub)) ||
     (act === 'hiding' && b.sub === 'retreat') ||
     (act === 'hunting' && b.sub !== 'pounce' && b.sub !== 'crouch');
   const running =
+    (act === 'active' && b.sub === 'zoom') ||
     (act === 'hunting' && b.sub === 'pounce') ||
     (act === 'hiding' && b.sub === 'retreat' && b.speed > 70);
 
@@ -111,6 +112,9 @@ export function drawGecko(b) {
   if (walking) cls.push('walking');
   if (running) cls.push('running');
   if (act === 'active' && b.sub === 'drink') cls.push('drinking');
+  if (act === 'active' && ['rest', 'lookout', 'stretch', 'dig', 'hop', 'surf'].includes(b.sub)) {
+    cls.push('act-' + b.sub);          // 日常行為：坐下／張望／伸懶腰／挖沙／彈跳／爬玻璃
+  }
   if (act === 'hunting') {
     cls.push('hunt-focus');                      // 獵人鎖定眼：瞳孔縮成細線
     if (b.sub === 'pounce') cls.push('mouth-wide');
