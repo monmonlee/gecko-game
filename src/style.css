@@ -1070,6 +1070,83 @@ html, body {
 .dexcard.locked .dex-art { filter: brightness(0); opacity: .45; }
 .dexcard.locked .dex-name, .dexcard.locked .dex-quote { color: #5a4f3e; }
 
+/* ---------- 封面（主畫面） ---------- */
+#title {
+  position: fixed;
+  inset: 0;
+  z-index: 125;
+  background: radial-gradient(ellipse 130% 80% at 50% 18%, #241f18, #0b0906 72%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+#title.hidden { display: none; }
+#title-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+}
+#title-eye {
+  width: 132px;
+  border-radius: 12px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, .55), 0 0 0 4px #3a2f22;
+}
+.title-lid {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scaleY(0);
+  animation: title-blink 4.6s infinite;
+}
+@keyframes title-blink {
+  0%, 88%, 100% { transform: scaleY(0); }
+  92%, 95% { transform: scaleY(1); }
+}
+#title h1 {
+  margin: 10px 0 0;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  color: #ffd98a;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, .45);
+}
+.title-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; }
+#title-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: min(76vw, 260px);
+}
+.tbtn {
+  font-family: inherit;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.tbtn.primary { background: #5c4a28; border: 1px solid #8a6f3d; color: #ffd98a; }
+.tbtn.ghost { background: none; border: 1px solid var(--panel-line); color: var(--text-dim); font-size: 12px; padding: 9px; }
+.tbtn.danger { background: none; border: 1px solid #6b3a33; color: #d98a7a; font-size: 12px; padding: 9px; }
+.title-warn {
+  font-size: 12px;
+  color: #e8ddc9;
+  line-height: 1.8;
+  background: #2a1e18;
+  border: 1px solid #6b3a33;
+  border-radius: 10px;
+  padding: 10px;
+}
+.title-foot {
+  position: absolute;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  left: 0; right: 0;
+  font-size: 9px;
+  color: #5a4f3e;
+}
+
 /* ---------- 開場前言（跑馬燈） ---------- */
 #prologue {
   position: fixed;

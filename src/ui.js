@@ -225,7 +225,51 @@ export function init(_brain, _feeder, isNew) {
   initDebug();
   setInterval(refresh, 300);
   refresh();
-  if (isNew) openNameModal();
+  openTitle(isNew);
+}
+
+// ---- 封面（主畫面）----
+const escName = s => String(s).replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+function openTitle(isNew) {
+  sound.setTrack('theme');                     // 封面配開場曲（第一次點擊後開始播）
+  const box = $('title-btns');
+  if (isNew) {
+    box.innerHTML = `<button class="tbtn primary" id="t-start">🦎 開始遊戲</button>`;
+    $('t-start').addEventListener('click', () => {
+      $('title').classList.add('hidden');
+      openNameModal();
+    });
+  } else {
+    box.innerHTML = `
+      <button class="tbtn primary" id="t-continue">▶ 繼續陪伴 ${escName(gs.gecko.name)}</button>
+      <button class="tbtn ghost" id="t-replay">📖 重看開場故事</button>
+      <button class="tbtn danger" id="t-reset">重新開始</button>`;
+    $('t-continue').addEventListener('click', hideTitle);
+    $('t-replay').addEventListener('click', () => {
+      $('title').classList.add('hidden');
+      openPrologue(true);
+    });
+    $('t-reset').addEventListener('click', confirmReset);
+  }
+  $('title').classList.remove('hidden');
+}
+
+function hideTitle() {
+  $('title').classList.add('hidden');
+  sound.setTrack('ambient');                   // 進遊戲換場景音景
+}
+
+function confirmReset() {
+  $('title-btns').innerHTML = `
+    <div class="title-warn">確定要重新開始嗎？<br>${escName(gs.gecko.name)} 和所有回憶<br>（日記、相簿、圖鑑）都會消失，回不來的唷。</div>
+    <button class="tbtn danger" id="t-reset-yes">我確定，說再見重新開始</button>
+    <button class="tbtn ghost" id="t-reset-no">不要好了，回去</button>`;
+  $('t-reset-yes').addEventListener('click', () => {
+    localStorage.removeItem(CONFIG.saveKey);
+    location.reload();
+  });
+  $('t-reset-no').addEventListener('click', () => openTitle(false));
 }
 
 // ---- 取名字／改名字（遊戲內視窗，取代 window.prompt）----
@@ -261,8 +305,8 @@ function openNameModal(rename = false) {
   $('name-input').addEventListener('keydown', e => { if (e.key === 'Enter') done(); });
 }
 
-// ---- 開場前言：取完名字後的跑馬燈（配開場曲） ----
-function openPrologue() {
+// ---- 開場前言：取完名字後的跑馬燈（配開場曲）；replay = 從封面重看 ----
+function openPrologue(replay = false) {
   const name = gs.gecko.name;
   const stanzas = [
     '這是一隻肥尾守宮。',
@@ -291,8 +335,10 @@ function openPrologue() {
     closed = true;
     $('prologue').classList.add('hidden');
     sound.setTrack('ambient');                 // 回到遊戲場景音景
-    showToast('🥽 牠還在認識新家，先用夜視鏡靜靜陪牠吧');
-    showToast('（不知道怎麼玩的話，按右上角的 ❓）');
+    if (!replay) {
+      showToast('🥽 牠還在認識新家，先用夜視鏡靜靜陪牠吧');
+      showToast('（不知道怎麼玩的話，按右上角的 ❓）');
+    }
   };
   const sc = $('prologue-scroll');
   sc.style.animation = 'prologue-scroll 46s linear forwards';
