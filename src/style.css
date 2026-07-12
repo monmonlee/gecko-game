@@ -57,7 +57,13 @@ html, body {
 
 #hud-top { display: flex; align-items: center; gap: 8px; }
 
-#g-name { font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+#g-name {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border-bottom: 1px dashed rgba(232, 201, 122, .45);   /* 提示：點名字可以改名 */
+}
 
 .badge {
   font-size: 10px;
@@ -886,9 +892,11 @@ html, body {
   border-radius: 8px;
   color: var(--text);
   font-family: inherit;
-  font-size: 15px;
+  font-size: 16px;              /* iOS：小於 16px 聚焦時會自動放大頁面 */
   padding: 10px;
   text-align: center;
+  -webkit-user-select: text;    /* iOS：蓋掉全域的 user-select:none，否則輸入框打不了字 */
+  user-select: text;
 }
 #name-ok {
   display: block;

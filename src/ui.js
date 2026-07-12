@@ -125,8 +125,12 @@ export function init(_brain, _feeder, isNew) {
   });
 
   $('modal').addEventListener('click', e => {
+    if ($('modal').classList.contains('locked')) return;   // 取名中不給點旁邊關閉
     if (e.target.id === 'modal' || e.target.id === 'modal-close') $('modal').classList.add('hidden');
   });
+
+  // 點名字可以改名（給不小心關掉取名視窗、卡在「小肥」的朋友）
+  $('g-name').addEventListener('click', () => openNameModal(true));
 
   // 圖鑑分頁
   $('btn-dex').addEventListener('click', openDex);
@@ -205,23 +209,36 @@ export function init(_brain, _feeder, isNew) {
   if (isNew) openNameModal();
 }
 
-// ---- 新守宮取名字（遊戲內視窗，取代 window.prompt）----
-function openNameModal() {
-  $('modal-box').innerHTML = `
+// ---- 取名字／改名字（遊戲內視窗，取代 window.prompt）----
+function openNameModal(rename = false) {
+  const current = (gs.gecko.name || '').replace(/"/g, '&quot;');
+  $('modal-box').innerHTML = rename ? `
+    <h3>🦎 幫牠改個名字</h3>
+    <div class="modal-note">想叫牠什麼呢？</div>
+    <input id="name-input" maxlength="12" placeholder="小肥" value="${current}" autocomplete="off">
+    <button id="name-ok">就是這個名字！</button>` : `
     <h3>🦎 牠搬進你家了</h3>
-    <div class="modal-note">一隻小小的肥尾守宮，正縮在窩裡偷看你。<br>幫牠取個名字吧！</div>
+    <div class="modal-note">一隻小小的肥尾守宮，正縮在窩裡偷看你。<br>幫牠取個名字吧！（之後點畫面上的名字還可以改）</div>
     <input id="name-input" maxlength="12" placeholder="小肥" autocomplete="off">
     <button id="name-ok">就叫這個名字！</button>`;
   $('modal').classList.remove('hidden');
+  // 新玩家的取名視窗不能點旁邊關掉，不然就永遠叫小肥了
+  $('modal').classList.toggle('locked', !rename);
+  setTimeout(() => $('name-input').focus(), 60);
   const done = () => {
-    const name = ($('name-input').value || '小肥').trim() || '小肥';
+    const name = ($('name-input').value || gs.gecko.name || '小肥').trim() || '小肥';
     gs.gecko.name = name;
     $('g-name').textContent = name;
     save(Date.now());
+    $('modal').classList.remove('locked');
     $('modal').classList.add('hidden');
-    showToast(`🦎「${name}…是我的名字嗎？…好，我記住了。」`);
-    showToast('🥽 牠還在認識新家，先用夜視鏡靜靜陪牠吧');
-    $('help').classList.remove('hidden');   // 新玩家先看一次飼養手冊
+    if (rename) {
+      showToast(`🦎「${name}…嗯，這就是我的名字。」`);
+    } else {
+      showToast(`🦎「${name}…是我的名字嗎？…好，我記住了。」`);
+      showToast('🥽 牠還在認識新家，先用夜視鏡靜靜陪牠吧');
+      $('help').classList.remove('hidden');   // 新玩家先看一次飼養手冊
+    }
   };
   $('name-ok').addEventListener('click', done);
   $('name-input').addEventListener('keydown', e => { if (e.key === 'Enter') done(); });
