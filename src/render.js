@@ -2,10 +2,11 @@ import { gs } from './state.js';
 import { CONFIG } from './config.js';
 import { setDark } from './sound.js';
 
-let geckoEl, wormEl, stageEl, poopEl, shedEl, emoteEl;
+let geckoEl, wormEl, stageEl, poopEl, shedEl, emoteEl, worldEl;
 
 export function initScene() {
   stageEl = document.getElementById('stage');
+  worldEl = document.getElementById('world');
   geckoEl = document.getElementById('gecko');
   wormEl = document.getElementById('worm');
   poopEl = document.getElementById('poop');
@@ -14,6 +15,29 @@ export function initScene() {
   geckoEl.innerHTML = sideSVG() + Object.values(POSE_SVGS).join('');
   wormEl.innerHTML = wormSVG();
   makeNoise();
+}
+
+// ---- 觀察鏡：鏡頭放大並跟著守宮移動 ----
+const ZOOM = 2.2;
+let zoomOn = false;
+const cam = { x: 160, y: 120 };
+
+export function setZoom(v) {
+  zoomOn = v;
+  if (!v) worldEl.style.transform = '';
+}
+export function isZoom() { return zoomOn; }
+
+function updateCamera(b) {
+  if (!zoomOn) return;
+  // 鏡頭緩緩跟上，不會暈
+  cam.x += (b.x - cam.x) * 0.06;
+  cam.y += (b.y - 14 - cam.y) * 0.06;
+  const vw = CONFIG.stage.w / ZOOM, vh = CONFIG.stage.h / ZOOM;
+  const cx = Math.max(vw / 2, Math.min(CONFIG.stage.w - vw / 2, cam.x));
+  const cy = Math.max(vh / 2, Math.min(CONFIG.stage.h - vh / 2, cam.y));
+  worldEl.style.transform =
+    `scale(${ZOOM}) translate(${(vw / 2 - cx).toFixed(1)}px, ${(vh / 2 - cy).toFixed(1)}px)`;
 }
 
 export function setMode(env) {
@@ -89,6 +113,7 @@ export function drawGecko(b) {
     `translate(${(b.x - 32 + ox).toFixed(1)}px, ${(b.y - 62 + oy).toFixed(1)}px) scale(${(sz * face).toFixed(3)}, ${sz})`;
 
   drawEmote(b, act, sz);
+  updateCamera(b);
 }
 
 // 成長階段的體型（以真實天數換算）

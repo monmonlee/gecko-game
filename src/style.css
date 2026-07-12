@@ -96,7 +96,32 @@ html, body {
 }
 #stage.feeding { cursor: none; }
 
-#world { position: absolute; inset: 0; transition: filter .4s; }
+#world {
+  position: absolute;
+  inset: 0;
+  transition: filter .4s;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* 觀察鏡按鈕（缸的右下角） */
+#btn-zoom {
+  position: absolute;
+  right: 7px; bottom: 7px;
+  z-index: 65;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(12, 10, 6, .72);
+  border: 1px solid #5a4b34;
+  color: #f0e6cf;
+  font-size: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#btn-zoom.on {
+  border-color: #e8c97a;
+  box-shadow: 0 0 10px rgba(232, 201, 122, .45);
+}
 
 .tank-bg {
   position: absolute;

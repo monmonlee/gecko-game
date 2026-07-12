@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 import { on } from './events.js';
 import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior, diaryLog } from './state.js';
-import { setMode, drawWorld, poseThumb } from './render.js';
+import { setMode, drawWorld, poseThumb, setZoom, isZoom } from './render.js';
 import * as sound from './sound.js';
 
 let brain, feeder;
@@ -68,6 +68,7 @@ export function init(_brain, _feeder, isNew) {
     if (!gs.environment.lightOn) return showToast('「黑漆漆的，我看不到蟲蟲啦」（開燈才能餵食）');
     const left = gs.timers.lastFedAt + CONFIG.feed.cooldownMs - now;
     if (left > 0) return showToast(`「我還很飽，肚子圓滾滾的～」（${fmt(left)} 後再餵）`);
+    setZoom(false);                    // 餵食要看全景
     feeder.start(now);
     showToast('🪱 移動手指引導蟲蟲——「那是什麼！扭來扭去的！」');
     refresh();
@@ -143,6 +144,15 @@ export function init(_brain, _feeder, isNew) {
 
   // 音效先整個關閉（之後想開回來：setOn(true)、恢復 userGesture 監聽、把 🔊 按鈕加回 index.html）
   sound.setOn(false);
+
+  // 觀察鏡：放大 2.2 倍、鏡頭跟著牠走（餵食／伸手時自動收起來）
+  $('btn-zoom').addEventListener('click', () => {
+    if (feeder.active) return showToast('（追蟲的時候要看全景才好引導）');
+    if (handBusy) return;
+    setZoom(!isZoom());
+    if (isZoom()) showToast('🔍 你悄悄湊近，仔細觀察牠…');
+    refresh();
+  });
 
   initDebug();
   setInterval(refresh, 300);
@@ -226,6 +236,7 @@ function startPetting() {
   if (handBusy || feeder.active || !gs.environment.lightOn) return;
   const g = gs.gecko;
   if (g.currentActivity === 'hiding') return showToast('「我在窩裡！你的手伸不進來吧！哼哼」');
+  setZoom(false);
   handBusy = true;
   brain.startPetWait();
   const hx = brain.x, hy = brain.y - 54;
@@ -258,6 +269,7 @@ function startPalm() {
   if (handBusy || feeder.active || !gs.environment.lightOn) return;
   const g = gs.gecko;
   if (g.currentActivity === 'hiding') return showToast('「我在窩裡不出去～你的手掌看起來還是有點可怕」');
+  setZoom(false);
   handBusy = true;
   const px = Math.max(30, Math.min(290, brain.x + (brain.x < 160 ? 40 : -40)));
   const py = Math.min(216, Math.max(196, brain.y));
@@ -407,6 +419,7 @@ export function refresh() {
   btnF.querySelector('.lbl').textContent = feeder.active ? '收回' : '餵食';
   $('feed-cd').textContent = !feeder.active && left > 0 ? fmt(left) : '';
 
+  $('btn-zoom').classList.toggle('on', isZoom());
   const hasChore = env.poopPresent || env.shedSkinPresent;
   $('btn-clamp').disabled = !env.lightOn || !hasChore;
   $('clamp-sub').textContent = env.poopPresent ? '有便便!' : env.shedSkinPresent ? '有蛻皮!' : '';
