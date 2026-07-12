@@ -18,7 +18,8 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://monmonlee.github.io/gecko-game/)",
       "Bash(curl -s https://monmonlee.github.io/gecko-game/)",
       "Bash(git commit -m 'README：遊戲介紹與版權聲明 *)",
-      "Bash(git commit -q -m 'v2：觀察圖鑑分頁＋21 種睡姿（含專屬畫面）＋表情與小動作系統 *)"
+      "Bash(git commit -q -m 'v2：觀察圖鑑分頁＋21 種睡姿（含專屬畫面）＋表情與小動作系統 *)",
+      "Bash(git commit -q -m '一頁式飼養手冊：❓ 按鈕＋新玩家自動顯示 *)"
     ]
   }
 }

@@ -110,6 +110,13 @@ export function init(_brain, _feeder, isNew) {
     if (e.target.id === 'dex') $('dex').classList.add('hidden');
   });
 
+  // 飼養手冊
+  $('btn-help').addEventListener('click', () => $('help').classList.remove('hidden'));
+  $('help-close').addEventListener('click', () => $('help').classList.add('hidden'));
+  $('help').addEventListener('click', e => {
+    if (e.target.id === 'help') $('help').classList.add('hidden');
+  });
+
   initDebug();
   setInterval(refresh, 300);
   refresh();
@@ -132,6 +139,7 @@ function openNameModal() {
     $('modal').classList.add('hidden');
     showToast(`🦎「${name}…是我的名字嗎？…好，我記住了。」`);
     showToast('🥽 牠還在認識新家，先用夜視鏡靜靜陪牠吧');
+    $('help').classList.remove('hidden');   // 新玩家先看一次飼養手冊
   };
   $('name-ok').addEventListener('click', done);
   $('name-input').addEventListener('keydown', e => { if (e.key === 'Enter') done(); });
