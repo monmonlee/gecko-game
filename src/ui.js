@@ -254,13 +254,50 @@ function openNameModal(rename = false) {
     if (rename) {
       showToast(`🦎「${name}…嗯，這就是我的名字。」`);
     } else {
-      showToast(`🦎「${name}…是我的名字嗎？…好，我記住了。」`);
-      showToast('🥽 牠還在認識新家，先用夜視鏡靜靜陪牠吧');
-      $('help').classList.remove('hidden');   // 新玩家先看一次飼養手冊
+      openPrologue();                          // 新玩家：先看牠的故事
     }
   };
   $('name-ok').addEventListener('click', done);
   $('name-input').addEventListener('keydown', e => { if (e.key === 'Enter') done(); });
+}
+
+// ---- 開場前言：取完名字後的跑馬燈（配開場曲） ----
+function openPrologue() {
+  const name = gs.gecko.name;
+  const stanzas = [
+    '這是一隻肥尾守宮。',
+    '小小的一隻，尾巴胖胖的，\n眼睛很黑很亮。',
+    '牠不知道這裡是哪裡，\n也不認得你。',
+    '對牠來說，你是一個\n很大很大的巨人。',
+    '牠整隻加起來，\n還沒有你的手掌大。',
+    '所以你一靠近，牠就躲起來。\n不是討厭你，牠只是會怕。',
+    '要一隻這麼小的東西相信你，\n要花很久很久的時間。',
+    '不過牠會記得一些事。',
+    '記得蟲蟲是誰給的，\n記得有人常常安安靜靜地看牠。',
+    '慢慢來就好。',
+    '有一天，牠會願意\n在你面前睡著。',
+    '到那個時候，\n就是牠真的相信你了。',
+    `<span class="pro-name">牠叫「${name}」。</span>`,
+    '請多多指教。',
+  ];
+  $('prologue-scroll').innerHTML =
+    stanzas.map(s => `<p>${s.replace(/\n/g, '<br>')}</p>`).join('');
+  $('prologue').classList.remove('hidden');
+  sound.setTrack('theme');                     // 開場曲
+
+  let closed = false;
+  const finish = () => {
+    if (closed) return;
+    closed = true;
+    $('prologue').classList.add('hidden');
+    sound.setTrack('ambient');                 // 回到遊戲場景音景
+    showToast('🥽 牠還在認識新家，先用夜視鏡靜靜陪牠吧');
+    showToast('（不知道怎麼玩的話，按右上角的 ❓）');
+  };
+  const sc = $('prologue-scroll');
+  sc.style.animation = 'prologue-scroll 46s linear forwards';
+  sc.addEventListener('animationend', finish, { once: true });
+  $('prologue-skip').addEventListener('click', finish, { once: true });
 }
 
 // ---- 安靜的陪伴：夜視模式下靜靜看牠，每天累計滿 3 分鐘 +2 好感 ----

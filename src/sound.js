@@ -6,6 +6,8 @@ let ctx = null, master = null, ready = false;
 let sfxOn = false, musicOn = true, dark = false;
 let musicGain = null, musicFilter = null;
 let cricketLoop = null, musicTimer = null, nextLoopT = 0;
+let track = 'ambient';                      // 'theme'（開場敘事曲）| 'ambient'（遊戲場景音景）
+let liveGains = [];                         // 換曲時要淡出的活動音符
 
 function ensure() {
   if (!ctx) {
@@ -64,6 +66,26 @@ export function setMusicOn(v) {
 }
 export function isMusicOn() { return musicOn; }
 
+// 切換曲目：把還在響的音符淡出，下一輪換新曲
+export function setTrack(name) {
+  if (track === name) return;
+  track = name;
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  for (const g of liveGains) {
+    try {
+      g.gain.cancelScheduledValues(now);
+      g.gain.setTargetAtTime(0, now, 0.25);
+    } catch (e) { /* 已結束的音符 */ }
+  }
+  liveGains = [];
+  nextLoopT = now + 1.4;
+  if (musicTimer && musicOn) {
+    scheduleLoop(nextLoopT);
+    nextLoopT += loopBeats() * BEAT;
+  }
+}
+
 // 關燈：只影響蟲鳴，音樂兩個模式都一樣
 // （原本的「關燈音樂變悶」在手機喇叭上會悶到聽不見，拿掉了）
 export function setDark(v) { dark = v; }
@@ -99,7 +121,6 @@ export function sfx(name) { if (sfxOn) SFX[name]?.(); }
 
 // ---- BGM：音樂盒搖籃曲（64 拍＝約 53 秒的完整段落，A A' B A'' 結構）----
 const BEAT = 60 / 72;                       // 72 BPM
-const LOOP_BEATS = 64;
 const MELODY = [                            // [拍, 頻率]
   // A 段
   [0, 659.25], [1, 783.99], [2, 880.00],
@@ -135,50 +156,80 @@ const CHORDS = [                            // 每 4 拍換一組和弦（墊在
   [48, CH.F], [52, CH.G], [56, CH.C], [60, CH.C],
 ];
 
+// 遊戲場景音景：溫暖的七和弦墊底＋隨機飄落的音樂盒單音（每輪都不一樣，久聽不膩）
+const AMBIENT_CHORDS = [
+  [261.63, 329.63, 392.00, 493.88],         // Cmaj7
+  [220.00, 261.63, 329.63, 392.00],         // Am7
+  [174.61, 220.00, 261.63, 329.63],         // Fmaj7
+  [196.00, 246.94, 329.63, 392.00],         // G6
+];
+const AMBIENT_NOTES = [392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+
+function loopBeats() { return track === 'theme' ? 64 : 32; }
+
 // 音樂盒撥弦音：基音＋八度泛音，快起音慢衰減
-function pluck(freq, t) {
+function pluck(freq, t, vol = 0.22) {
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = 'sine'; o.frequency.value = freq;
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(0.22, t + 0.012);
+  g.gain.linearRampToValueAtTime(vol, t + 0.012);
   g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+  g._end = t + 1.6;
   o.connect(g); g.connect(musicGain);
   o.start(t); o.stop(t + 1.6);
   const o2 = ctx.createOscillator(), g2 = ctx.createGain();
   o2.type = 'sine'; o2.frequency.value = freq * 2;
   g2.gain.setValueAtTime(0, t);
-  g2.gain.linearRampToValueAtTime(0.07, t + 0.008);
+  g2.gain.linearRampToValueAtTime(vol * 0.32, t + 0.008);
   g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+  g2._end = t + 0.8;
   o2.connect(g2); g2.connect(musicGain);
   o2.start(t); o2.stop(t + 0.8);
+  liveGains.push(g, g2);
 }
 
 // 柔軟的和弦墊：慢起音三角波
-function pad(freqs, t, durBeats) {
+function pad(freqs, t, durBeats, vol = 0.05) {
   const dur = durBeats * BEAT;
   for (const f of freqs) {
     const o = ctx.createOscillator(), g = ctx.createGain();
     o.type = 'triangle'; o.frequency.value = f;
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(0.05, t + 0.7);
-    g.gain.setValueAtTime(0.05, t + dur - 0.4);
+    g.gain.linearRampToValueAtTime(vol, t + 0.7);
+    g.gain.setValueAtTime(vol, t + dur - 0.4);
     g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.25);
+    g._end = t + dur + 0.4;
     o.connect(g); g.connect(musicGain);
     o.start(t); o.stop(t + dur + 0.4);
+    liveGains.push(g);
   }
 }
 
 function scheduleLoop(t0) {
   if (document.hidden) return;              // 分頁在背景就這輪休息
-  for (const [beat, freqs] of CHORDS) pad(freqs, t0 + beat * BEAT, 4);
-  for (const [beat, f] of MELODY) pluck(f, t0 + beat * BEAT);
+  liveGains = liveGains.filter(g => g._end > (ctx ? ctx.currentTime : 0));
+  if (track === 'theme') {
+    for (const [beat, freqs] of CHORDS) pad(freqs, t0 + beat * BEAT, 4);
+    for (const [beat, f] of MELODY) pluck(f, t0 + beat * BEAT);
+  } else {
+    // 場景音景：4 組 × 8 拍和弦，上面每組隨機灑 1–3 顆單音
+    for (let i = 0; i < 4; i++) {
+      const t = t0 + i * 8 * BEAT;
+      pad(AMBIENT_CHORDS[i], t, 8, 0.038);
+      const n = 1 + (Math.random() * 3 | 0);
+      for (let k = 0; k < n; k++) {
+        const f = AMBIENT_NOTES[(Math.random() * AMBIENT_NOTES.length) | 0];
+        pluck(f, t + Math.random() * 7 * BEAT, 0.08 + Math.random() * 0.09);
+      }
+    }
+  }
 }
 
 function startMusic() {
   if (!ready || !musicOn || musicTimer) return;
   nextLoopT = ctx.currentTime + 0.15;
   scheduleLoop(nextLoopT);
-  nextLoopT += LOOP_BEATS * BEAT;
+  nextLoopT += loopBeats() * BEAT;
   // 用固定心跳當看門狗：計時器被瀏覽器節流、AudioContext 被 iOS 打斷都救得回來
   musicTimer = setInterval(() => {
     if (!musicOn || document.hidden) return;
@@ -186,7 +237,7 @@ function startMusic() {
     if (ctx.currentTime > nextLoopT - 1.5) {           // 提前把下一輪整段排進去
       if (nextLoopT < ctx.currentTime) nextLoopT = ctx.currentTime + 0.1;
       scheduleLoop(nextLoopT);
-      nextLoopT += LOOP_BEATS * BEAT;
+      nextLoopT += loopBeats() * BEAT;
     }
   }, 500);
 }

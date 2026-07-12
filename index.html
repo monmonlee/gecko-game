@@ -14,7 +14,7 @@
 <title>守宮陪伴 🦎</title>
 <style>
 /* 保底樣式：就算主要樣式還沒載入，也不要讓選單、蟲、手掌攤在畫面上 */
-#handmenu.hidden, #modal.hidden { display: none; }
+#handmenu.hidden, #modal.hidden, #prologue.hidden { display: none; }
 #hand, #worm, #poop, #shedskin { display: none; }
 body { background: #14110d; color: #e8ddc9; }
 </style>
@@ -87,6 +87,11 @@ body { background: #14110d; color: #e8ddc9; }
   </div>
 
   <div id="modal" class="hidden"><div id="modal-box"></div></div>
+
+  <div id="prologue" class="hidden">
+    <div id="prologue-scroll"></div>
+    <button id="prologue-skip">跳過</button>
+  </div>
 
   <div id="dex" class="hidden">
     <div id="dex-box">
