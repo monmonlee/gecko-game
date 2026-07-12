@@ -1248,13 +1248,14 @@ html, body {
   width: 64px; height: 64px;
 }
 .photo-scene.nv {
-  filter: brightness(1.45) grayscale(1) sepia(1) hue-rotate(55deg) saturate(3) contrast(1.05);
+  /* 保留夜視綠的故事感，但調成「曝光正確」，主角清楚可見 */
+  filter: brightness(1.9) grayscale(1) sepia(1) hue-rotate(55deg) saturate(2.4) contrast(1.02);
 }
 .photo-scene.nv::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(transparent 0 2px, rgba(0, 0, 0, .2) 2px 3px);
+  background: repeating-linear-gradient(transparent 0 2px, rgba(0, 0, 0, .1) 2px 3px);
 }
 .photo-cap {
   margin-top: 5px;

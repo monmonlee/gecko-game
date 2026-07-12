@@ -72,6 +72,7 @@ export class Brain {
     this.microAt = now + randMs(CONFIG.micro.gapMs);
     const env = gs.environment;
     if (!env.lightOn && env.viewMode !== 'nightvision') return;   // 沒人看見就不演了
+    if (this.act === 'sleeping' && gs.gecko.locationId === 'hide') return;  // 睡在窩裡也看不到
     let pool;
     if (this.act === 'sleeping') {
       // 臉被尾巴遮住／頭埋著的睡姿只能吐舌
@@ -164,6 +165,12 @@ export class Brain {
 
   // 發呆結束後決定下一個日常行為：走路以外還會坐下、張望、伸懶腰、挖沙、彈跳、爬玻璃、衝刺
   startIdleAction() {
+    // 在躲窩後面做動作沒人看得到：先走出來再表演
+    if (gs.gecko.locationId === 'hide') {
+      const locs = Object.keys(CONFIG.locations).filter(id => id !== 'hide');
+      this.walkToLoc(pick(locs), CONFIG.walkSpeed, 'walk');
+      return;
+    }
     const pool = ['walk', 'walk', 'walk', 'walk', 'rest', 'rest', 'lookout', 'lookout', 'stretch', 'dig', 'hop'];
     if (!gs.environment.lightOn) pool.push('zoom', 'zoom', 'surf', 'surf');   // 夜行性的招牌行為
     else if (this.tier() === 'trust') pool.push('zoom', 'surf');
