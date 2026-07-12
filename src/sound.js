@@ -17,7 +17,7 @@ function ensure() {
     master.connect(ctx.destination);
     musicFilter = ctx.createBiquadFilter();
     musicFilter.type = 'lowpass';
-    musicFilter.frequency.value = dark ? 1200 : 2600;
+    musicFilter.frequency.value = 2600;   // 開燈關燈都一樣，柔化音色用
     musicGain = ctx.createGain();
     musicGain.gain.value = 1.6;
     musicGain.connect(musicFilter);
@@ -59,19 +59,14 @@ function unlockMediaSession() {
 export function setSfxOn(v) { sfxOn = v; }
 export function setMusicOn(v) {
   musicOn = v;
-  if (!v && musicTimer) { clearTimeout(musicTimer); musicTimer = null; }
+  if (!v && musicTimer) { clearInterval(musicTimer); musicTimer = null; }
   if (v && ready) startMusic();
 }
 export function isMusicOn() { return musicOn; }
 
-// 關燈：音樂變悶（像隔著缸在夜裡聽）、蟲鳴開始
-export function setDark(v) {
-  dark = v;
-  if (musicFilter) {
-    musicFilter.frequency.cancelScheduledValues(ctx.currentTime);
-    musicFilter.frequency.linearRampToValueAtTime(v ? 1200 : 2600, ctx.currentTime + 1.2);
-  }
-}
+// 關燈：只影響蟲鳴，音樂兩個模式都一樣
+// （原本的「關燈音樂變悶」在手機喇叭上會悶到聽不見，拿掉了）
+export function setDark(v) { dark = v; }
 
 // ---- 音效（目前關閉） ----
 function tone({ f = 440, f2, t = 0.1, type = 'sine', v = 0.12, when = 0 }) {
@@ -102,20 +97,42 @@ const SFX = {
 
 export function sfx(name) { if (sfxOn) SFX[name]?.(); }
 
-// ---- BGM：音樂盒搖籃曲（16 拍循環，C 大調，I–vi–IV–V）----
+// ---- BGM：音樂盒搖籃曲（64 拍＝約 53 秒的完整段落，A A' B A'' 結構）----
 const BEAT = 60 / 72;                       // 72 BPM
-const LOOP_BEATS = 16;
-const MELODY = [                            // [拍, 頻率, 長度(拍)]
-  [0, 659.25, 1], [1, 783.99, 1], [2, 880.00, 2],
-  [4, 783.99, 1], [5, 659.25, 1], [6, 523.25, 2],
-  [8, 587.33, 1], [9, 659.25, 1], [10, 783.99, 2],
-  [12, 659.25, 1], [13, 587.33, 1], [14, 523.25, 2.5],
+const LOOP_BEATS = 64;
+const MELODY = [                            // [拍, 頻率]
+  // A 段
+  [0, 659.25], [1, 783.99], [2, 880.00],
+  [4, 783.99], [5, 659.25], [6, 523.25],
+  [8, 587.33], [9, 659.25], [10, 783.99],
+  [12, 659.25], [13, 587.33], [14, 523.25],
+  // A' 段（爬得更高）
+  [16, 659.25], [17, 783.99], [18, 1046.50],
+  [20, 880.00], [21, 783.99], [22, 659.25],
+  [24, 587.33], [25, 523.25], [26, 440.00],
+  [28, 587.33], [29, 659.25], [30, 587.33],
+  // B 段（沉下來，安靜的段落）
+  [32, 440.00], [33, 523.25], [34, 659.25],
+  [36, 698.46], [37, 659.25], [38, 587.33],
+  [40, 659.25], [41, 523.25], [42, 392.00],
+  [44, 440.00], [45, 493.88], [46, 587.33],
+  // A'' 段（回家收尾）
+  [48, 880.00], [49, 783.99], [50, 698.46],
+  [52, 783.99], [53, 659.25], [54, 587.33],
+  [56, 523.25], [57, 587.33], [58, 659.25], [59, 783.99],
+  [60, 523.25],
 ];
+const CH = {
+  C:  [261.63, 329.63, 392.00],
+  Am: [220.00, 261.63, 329.63],
+  F:  [174.61, 261.63, 349.23],
+  G:  [196.00, 246.94, 392.00],
+};
 const CHORDS = [                            // 每 4 拍換一組和弦（墊在下面的柔軟和聲）
-  [0,  [261.63, 329.63, 392.00]],           // C
-  [4,  [220.00, 261.63, 329.63]],           // Am
-  [8,  [174.61, 261.63, 349.23]],           // F
-  [12, [196.00, 246.94, 392.00]],           // G
+  [0, CH.C], [4, CH.Am], [8, CH.F], [12, CH.G],
+  [16, CH.C], [20, CH.Am], [24, CH.F], [28, CH.G],
+  [32, CH.Am], [36, CH.F], [40, CH.C], [44, CH.G],
+  [48, CH.F], [52, CH.G], [56, CH.C], [60, CH.C],
 ];
 
 // 音樂盒撥弦音：基音＋八度泛音，快起音慢衰減
@@ -160,14 +177,18 @@ function scheduleLoop(t0) {
 function startMusic() {
   if (!ready || !musicOn || musicTimer) return;
   nextLoopT = ctx.currentTime + 0.15;
-  const tick = () => {
-    if (!musicOn) { musicTimer = null; return; }
-    if (nextLoopT < ctx.currentTime) nextLoopT = ctx.currentTime + 0.1;  // 背景回來重新對拍
-    scheduleLoop(nextLoopT);
-    nextLoopT += LOOP_BEATS * BEAT;
-    musicTimer = setTimeout(tick, (nextLoopT - ctx.currentTime - 0.5) * 1000);
-  };
-  tick();
+  scheduleLoop(nextLoopT);
+  nextLoopT += LOOP_BEATS * BEAT;
+  // 用固定心跳當看門狗：計時器被瀏覽器節流、AudioContext 被 iOS 打斷都救得回來
+  musicTimer = setInterval(() => {
+    if (!musicOn || document.hidden) return;
+    if (ctx.state !== 'running') ctx.resume();
+    if (ctx.currentTime > nextLoopT - 1.5) {           // 提前把下一輪整段排進去
+      if (nextLoopT < ctx.currentTime) nextLoopT = ctx.currentTime + 0.1;
+      scheduleLoop(nextLoopT);
+      nextLoopT += LOOP_BEATS * BEAT;
+    }
+  }, 500);
 }
 
 // ---- 關燈後的夜晚蟲鳴：隨機間隔的三連唧唧聲 ----
