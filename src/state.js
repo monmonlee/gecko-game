@@ -29,6 +29,7 @@ function defaultState(now, name) {
       shedSkinPresent: false,
       shedX: 120,
       soundOn: true,
+      musicOn: true,
     },
     timers: {
       createdAt: now,

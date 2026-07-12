@@ -153,8 +153,19 @@ export function init(_brain, _feeder, isNew) {
     if (e.target.id === 'diary') $('diary').classList.add('hidden');
   });
 
-  // 音效先整個關閉（之後想開回來：setOn(true)、恢復 userGesture 監聽、把 🔊 按鈕加回 index.html）
-  sound.setOn(false);
+  // 音效（嗶嗶聲）依需求維持關閉；BGM（程式生成的音樂盒搖籃曲）用 🎵 開關
+  sound.setSfxOn(false);
+  sound.setMusicOn(gs.environment.musicOn !== false);
+  window.addEventListener('pointerdown', () => sound.userGesture(), { once: true });
+  const musicBtn = $('btn-sound');
+  const syncMusicBtn = () => { musicBtn.textContent = sound.isMusicOn() ? '🎵' : '🔇'; };
+  syncMusicBtn();
+  musicBtn.addEventListener('click', () => {
+    sound.setMusicOn(!sound.isMusicOn());
+    gs.environment.musicOn = sound.isMusicOn();
+    save(Date.now());
+    syncMusicBtn();
+  });
 
   // 觀察鏡：放大 2.2 倍、鏡頭跟著牠走（餵食／伸手時自動收起來）
   $('btn-zoom').addEventListener('click', () => {
