@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 import { on } from './events.js';
 import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior, diaryLog } from './state.js';
-import { setMode, drawWorld, poseThumb, setZoom, isZoom, geckoMarkup } from './render.js';
+import { setMode, drawWorld, poseThumb, setZoom, isZoom, geckoMarkup, exportSVGString } from './render.js';
 import * as sound from './sound.js';
 
 let brain, feeder;
@@ -219,6 +219,9 @@ export function init(_brain, _feeder, isNew) {
       gs.records.photos.splice(Number(e.target.dataset.i), 1);
       save(Date.now());
       openAlbum();
+    }
+    if (e.target.classList.contains('photo-save')) {
+      exportPhoto(gs.records.photos[Number(e.target.dataset.i)]);
     }
   });
 
@@ -516,11 +519,80 @@ function openAlbum() {
             </div>
             <div class="photo-cap">${p.d}<br>${p.line || ''}</div>
             <button class="photo-del" data-i="${i}">✕</button>
+            <button class="photo-save" data-i="${i}">📤</button>
           </div>`).join('')}
       </div>
-      <div class="modal-note">最多收藏 24 張，捨不得的就留著吧</div>`;
+      <div class="modal-note">最多收藏 24 張・📤 可以存成真的圖片傳給朋友</div>`;
   }
   $('album').classList.remove('hidden');
+}
+
+// ---- 拍立得匯出成真的圖片（可存手機、傳 LINE） ----
+async function exportPhoto(p) {
+  if (!p) return;
+  try {
+    showToast('📤 照片生成中…');
+    try { await document.fonts.load('24px "Cubic 11"'); } catch (e) { /* 字型沒好就用備用 */ }
+    const svg = exportSVGString(p.cls, p.f || 1);
+    const img = new Image();
+    await new Promise((res, rej) => {
+      img.onload = res; img.onerror = rej;
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+    const W = 480, H = 600;
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    x.fillStyle = '#f2ecdc';                       // 拍立得白框
+    x.fillRect(0, 0, W, H);
+    const sx = 32, sy = 32, sw = W - 64, sh = 400; // 相片視窗
+    const grad = x.createLinearGradient(0, sy, 0, sy + sh);
+    grad.addColorStop(0, '#3d3a33');
+    grad.addColorStop(.55, '#575043');
+    grad.addColorStop(.73, '#6a5a42');
+    grad.addColorStop(.76, '#c9ad82');
+    grad.addColorStop(1, '#c9ad82');
+    x.fillStyle = grad;
+    x.fillRect(sx, sy, sw, sh);
+    x.imageSmoothingEnabled = false;               // 像素風放大
+    const gw = 300;
+    x.drawImage(img, (W - gw) / 2, sy + sh - gw - 30, gw, gw);
+    if (p.nv) {                                    // 夜視風：綠色沖洗＋掃描線＋REC
+      x.globalCompositeOperation = 'overlay';
+      x.fillStyle = 'rgba(80,255,140,.4)';
+      x.fillRect(sx, sy, sw, sh);
+      x.globalCompositeOperation = 'source-over';
+      x.fillStyle = 'rgba(30,80,40,.22)';
+      x.fillRect(sx, sy, sw, sh);
+      x.fillStyle = 'rgba(0,0,0,.1)';
+      for (let yy = sy; yy < sy + sh; yy += 6) x.fillRect(sx, yy, sw, 2);
+      x.fillStyle = '#b7ffb0';
+      x.font = '20px "Cubic 11", monospace';
+      x.textAlign = 'left';
+      x.fillText('REC ●', sx + sw - 88, sy + 32);
+    }
+    x.textAlign = 'center';
+    x.fillStyle = '#4a4032';
+    x.font = '24px "Cubic 11", monospace';
+    x.fillText(p.d || '', W / 2, sy + sh + 48);
+    x.font = '18px "Cubic 11", monospace';
+    x.fillText((p.line || '').slice(0, 20), W / 2, sy + sh + 82);
+    x.fillStyle = '#a99b85';
+    x.font = '14px "Cubic 11", monospace';
+    x.fillText('守宮陪伴 🦎 monmonlee.github.io/gecko-game', W / 2, H - 22);
+    const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+    const file = new File([blob], `gecko-photo-${p.d?.replace(/[/: ]/g, '-') || 'snap'}.png`, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file] }).catch(() => {});
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = file.name;
+      a.click();
+    }
+  } catch (e) {
+    showToast('照片生成失敗了…再試一次看看？');
+  }
 }
 
 // ---- 守宮日記 ----
@@ -622,6 +694,7 @@ const MICRO_LINES = {
   blep:      '😛（舌頭忘記收回去了）',
   wink:      '👀（睜一隻眼閉一隻眼…牠在偷看你有沒有在看牠）',
   lick_lips: '😋「嘴巴舔一舔～蟲蟲的味道」',
+  notice:    '……牠停了下來，朝你這邊看了一下。',
 };
 
 function statusText() {
@@ -650,6 +723,8 @@ function statusText() {
       zoom:    '💨「衝刺——！！（不要問為什麼）」',
       surf_go: '🧗「我要去那面牆…」',
       surf:    '🧗「放我出去！我要出去玩！（扒玻璃）」',
+      beg_go:  '🥺「肚子好餓…去玻璃那邊等等看…」',
+      beg:     '🥺「巨人…你那裡，有蟲蟲嗎？」',
     }[brain.sub] ?? `🐾「巡邏巡邏～這裡都是我的地盤」${shed}`;
     case 'petted':   return {
       wait:    '🤚「！？那隻大手要幹嘛…」',

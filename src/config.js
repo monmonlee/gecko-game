@@ -129,16 +129,24 @@ export const CONFIG = {
     dig:        { icon: '⛏️', label: '挖挖手',           desc: '前腳快速刨沙，想挖個洞' },
     zoom:       { icon: '💨', label: '深夜衝刺',         desc: '半夜突然全速衝過整個缸（原因不明）' },
     surf:       { icon: '🧗', label: '爬玻璃',           desc: '扒著玻璃想出去玩，肚皮全貼在上面' },
+    beg:        { icon: '🥺', label: '討食蟲蟲',         desc: '肚子餓的時候，隔著玻璃眼巴巴看著你' },
   },
 
   idleAct: {                            // 各種日常行為的持續秒數
-    durS: { rest: [6, 12], lookout: [4, 8], stretch: [1.6, 2.2], dig: [2.5, 4], hop: [0.85, 0.85], surf: [4, 7] },
+    durS: { rest: [6, 12], lookout: [4, 8], stretch: [1.6, 2.2], dig: [2.5, 4], hop: [0.85, 0.85], surf: [4, 7], beg: [6, 10] },
   },
 
   micro: {                              // 睡覺／發呆時的隨機小動作
     firstMs: [12000, 30000],
     gapMs: [20000, 60000],
-    durMs: { yawn: 2500, eyelick: 1800, blep: 6000, wink: 5000, lick_lips: 1600 },
+    durMs: { yawn: 2500, eyelick: 1800, blep: 6000, wink: 5000, lick_lips: 1600, notice: 4500 },
+  },
+
+  rhythm: {                             // 真實世界作息：晚上（19:00–07:00）才是牠的時間
+    nightStartHour: 19,
+    nightEndHour: 7,
+    dayNapS: [30, 90],                  // 白天在黑暗中醒來又睡回去的間隔（秒）
+    daySleepyChance: 0.45,              // 白天活動一下就想回去睡的機率
   },
 
   saveKey: 'gecko-game-save-v1',

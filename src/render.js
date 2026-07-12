@@ -2,7 +2,7 @@ import { gs } from './state.js';
 import { CONFIG } from './config.js';
 import { setDark } from './sound.js';
 
-let geckoEl, wormEl, stageEl, poopEl, shedEl, emoteEl, worldEl;
+let geckoEl, wormEl, stageEl, poopEl, shedEl, emoteEl, worldEl, traceEl;
 
 export function initScene() {
   stageEl = document.getElementById('stage');
@@ -12,6 +12,7 @@ export function initScene() {
   poopEl = document.getElementById('poop');
   shedEl = document.getElementById('shedskin');
   emoteEl = document.getElementById('emote');
+  traceEl = document.getElementById('trace');
   geckoEl.innerHTML = geckoMarkup();
   wormEl.innerHTML = wormSVG();
   makeNoise();
@@ -75,6 +76,14 @@ export function drawWorld() {
   if (env.poopPresent) poopEl.style.left = env.poopX + 'px';
   shedEl.style.display = env.shedSkinPresent ? 'block' : 'none';
   if (env.shedSkinPresent) shedEl.style.left = env.shedX + 'px';
+  // 夜間痕跡：牠在你不在時活動過的證據
+  if (env.trace) {
+    traceEl.className = env.trace.type;
+    traceEl.style.display = 'block';
+    traceEl.style.left = env.trace.x + 'px';
+  } else {
+    traceEl.style.display = 'none';
+  }
 }
 
 // 某些睡姿需要偏移（睡屋頂上、泡水盆裡、貼玻璃…）
@@ -112,7 +121,7 @@ export function drawGecko(b) {
   if (walking) cls.push('walking');
   if (running) cls.push('running');
   if (act === 'active' && b.sub === 'drink') cls.push('drinking');
-  if (act === 'active' && ['rest', 'lookout', 'stretch', 'dig', 'hop', 'surf'].includes(b.sub)) {
+  if (act === 'active' && ['rest', 'lookout', 'stretch', 'dig', 'hop', 'surf', 'beg'].includes(b.sub)) {
     cls.push('act-' + b.sub);          // 日常行為：坐下／張望／伸懶腰／挖沙／彈跳／爬玻璃
   }
   if (act === 'hunting') {
@@ -165,6 +174,45 @@ function drawEmote(b, act, sz = 1) {
 // 圖鑑縮圖：專屬睡姿用專屬圖，其餘用側面圖
 export function poseThumb(poseId) {
   return POSE_SVGS[poseId] ?? sideSVG(true);
+}
+
+// ---- 拍立得匯出：把照片狀態組成獨立 SVG（內嵌必要樣式，給 canvas 轉圖用） ----
+const EXPORT_CSS = `
+  svg.pv{display:block;overflow:visible}
+  .eye-lid,.eye-happy,.eye-flat,.eye-heart,.mouth-open,.t-blep,.t-lick,.t-lips,.d-wink-open{display:none}
+  .eyes-closed .eye{display:none}.eyes-closed .eye-lid{display:block}
+  .pet-happy .eye{display:none}.pet-happy .eye-happy{display:block}
+  .onhand .pupil{display:none}.onhand .eye-heart{display:block}
+  .mood-low .eye-flat{display:block}
+  .hunt-focus .pupil{transform:scaleX(.32);transform-box:fill-box;transform-origin:center}
+  .mouth-wide .mouth,.micro-yawn .mouth{display:none}
+  .mouth-wide .mouth-open,.micro-yawn .mouth-open{display:block}
+  .micro-yawn .eye{display:none}.micro-yawn .eye-lid{display:block}
+  .micro-blep .t-blep,.pose-blep_sleep .t-blep{display:block}
+  .micro-eyelick .t-lick{display:block}
+  .micro-lick_lips .t-lips{display:block}
+  .micro-wink .eye{display:block}.micro-wink .eye-lid{display:none}
+  .micro-wink .d-wink-open{display:block}.micro-wink .d-wink-lid{display:none}
+  .shedding svg.pv{filter:brightness(1.45) saturate(.45) contrast(.92)}
+  .pose-curl .gecko-svg{transform:scaleY(.85) scaleX(.9)}
+  .pose-flat .gecko-svg{transform:scaleY(.72) scaleX(1.08)}
+  .pose-hide_tail .gecko-svg{transform:scaleY(.9)}
+  .pose-halfout .gecko-svg{transform:scaleY(.88)}
+  .pose-blep_sleep .gecko-svg{transform:scaleY(.8)}
+  .pose-perch .gecko-svg{transform:scaleY(.8)}
+  .pose-moss .gecko-svg{transform:scaleY(.82) scaleX(.88)}
+  .pose-belly .gecko-svg{transform:scaleY(.68) scaleX(1.06)}
+  .pose-leaf .gecko-svg{transform:scaleY(.85) scaleX(.9)}
+  .pose-roof .gecko-svg{transform:scaleY(.82)}
+`;
+
+export function exportSVGString(cls, facing = 1) {
+  const m = cls.match(/pose-([a-z_]+)/);
+  const own = m && POSE_SVGS[m[1]];
+  let body = own || sideSVG(true);
+  if (facing < 0) body = `<g transform="translate(64,0) scale(-1,1)">${body}</g>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" class="${cls}">` +
+    `<style>${EXPORT_CSS}</style>${body}</svg>`;
 }
 
 /* =====================================================================

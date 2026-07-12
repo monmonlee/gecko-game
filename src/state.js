@@ -28,6 +28,7 @@ function defaultState(now, name) {
       poopX: 160,
       shedSkinPresent: false,
       shedX: 120,
+      trace: null,
       soundOn: true,
       musicOn: true,
     },
@@ -41,6 +42,7 @@ function defaultState(now, name) {
       nextShedAt: now + randMs(CONFIG.shed.intervalMs),
       shedEndAt: 0,
       lastCheckinDay: new Date(now).toDateString(),
+      streakDays: 1,                  // 連續來看牠的天數
       nvWatchDay: '',                 // 「安靜的陪伴」：夜視觀察的累計（每日）
       nvWatchMs: 0,
       nvRewardDay: '',
@@ -54,6 +56,7 @@ function defaultState(now, name) {
       shedsCollected: 0,
       diary: [],
       photos: [],
+      firstNightDone: false,          // 第一晚的「保證時刻」演過了沒
     },
   };
 }
@@ -163,6 +166,23 @@ function settle(now) {
   // 離線期間睡姿輪換
   if (now - t.lastPoseChangeAt > CONFIG.pose.rotateMs[0]) rotateSleepPose(now);
 
+  // 夜間痕跡：離線超過 4 小時，有一半機率留下牠活動過的證據
+  if (dt > 4 * 3600 * 1000) {
+    if (Math.random() < 0.5) {
+      const types = ['crawl', 'dig', 'prints'];
+      const type = types[(Math.random() * types.length) | 0];
+      gs.environment.trace = { type, x: Math.round(70 + Math.random() * 190) };
+      const lines = {
+        crawl:  '晚上在沙子上走來走去，畫出了一條路。',
+        dig:    '半夜挖了一個洞。挖到一半忘記為什麼要挖。',
+        prints: '去水盆邊喝了水，沙子上留下小小的腳印。',
+      };
+      diaryLog(lines[type], now);
+    } else {
+      gs.environment.trace = null;
+    }
+  }
+
   // 缺席懲罰：連續 3 天以上未開啟，每日 −2，但不低於當前等級底線
   const daysAway = Math.floor(dt / DAY);
   if (daysAway >= CONFIG.affinity.absenceGraceDays) {
@@ -187,12 +207,21 @@ function settle(now) {
     if (gs.environment.shedSkinPresent) emit('toast', '「我脫皮了！舊的皮皮留在缸裡送你」');
   }
 
-  // 每日簽到 +1
+  // 每日簽到 +1（附帶溫柔版連續紀錄：只慶祝、不懲罰）
   const day = new Date(now).toDateString();
   if (t.lastCheckinDay !== day) {
+    const yesterday = new Date(now - 86400000).toDateString();
+    t.streakDays = t.lastCheckinDay === yesterday ? (t.streakDays || 0) + 1 : 1;
     t.lastCheckinDay = day;
     addAffinity(CONFIG.affinity.checkin, '今天也來看我');
     diaryLog(`巨人今天也來看我了。我在${CONFIG.locations[gs.gecko.locationId]?.label ?? '缸裡'}睡覺。`, now);
+    if (t.streakDays === 7) {
+      emit('toast', '💛「那個巨人，已經連續七天來看我了。……我有在數。」');
+      diaryLog('巨人連續七天都來了。這件事我有偷偷在數。', now);
+    } else if (t.streakDays === 30) {
+      emit('toast', '💛「三十天，每天都在。這樣的巨人，只有你一個。」');
+      diaryLog('連續三十天了。寫下來，不可以忘記。', now);
+    }
   }
 }
 

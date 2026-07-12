@@ -12,6 +12,13 @@ const pick = arr => arr[(Math.random() * arr.length) | 0];
 
 const HIDE = CONFIG.locations.hide;      // 窩內位置（尾巴會露出窩外）
 const HIDE_PEEK_X = HIDE.x + 36;         // 探頭時頭從洞口伸出
+const HIDE_DOOR = { x: 106, y: 204 };    // 洞口外的落點：進窩要先走到門口再鑽進去
+
+// 真實世界作息：晚上才是牠的時間
+const isNight = now => {
+  const h = new Date(now).getHours();
+  return h >= CONFIG.rhythm.nightStartHour || h < CONFIG.rhythm.nightEndHour;
+};
 
 // 守宮行為 FSM：sleeping / active / hiding / frozen / hunting / petted
 // 轉移由燈光、好感度、餵食、摸摸事件驅動；currentActivity 持久化在 gs
@@ -31,6 +38,7 @@ export class Brain {
     this.pendingLoc = gs.gecko.locationId;
     this.nextPoseRotate = now + randMs(CONFIG.pose.rotateMs);
     this.hunt = null;
+    this.via = null;                   // 移動的中途點（進窩先繞洞口）
     this.micro = null;                 // 進行中的小動作（打哈欠、舔眼睛…）
     this.microAt = now + randMs(CONFIG.micro.firstMs);
 
@@ -51,6 +59,13 @@ export class Brain {
   tier() { return tierOf(gs.gecko.affinity).id; }
 
   update(dt, now) {
+    // 第一晚的保證時刻：新玩家第一次用夜視看牠，一定會看到牠出來喝水
+    if (!gs.records.firstNightDone && !gs.environment.lightOn &&
+        gs.environment.viewMode === 'nightvision' &&
+        this.act === 'active' && this.sub === 'idle' && !this.fnStarted) {
+      this.fnStarted = true;
+      this.walkToLoc('water', CONFIG.walkSpeed * 0.8, 'walk');
+    }
     switch (this.act) {
       case 'frozen':   if (now >= this.freezeUntil) this.reactAfterFreeze(now); break;
       case 'hunting':  this.updateHunt(dt, now); break;
@@ -80,10 +95,15 @@ export class Brain {
       pool = face ? ['wink', 'yawn', 'blep'] : ['blep'];
     } else {
       pool = ['yawn', 'eyelick', 'blep'];
+      // 「牠注意到你了」：熟悉之後，夜視下偶爾會停下來朝你這邊看一眼
+      if (env.viewMode === 'nightvision' && !env.lightOn &&
+          ['familiar', 'trust'].includes(this.tier())) {
+        pool.push('notice', 'notice');
+      }
     }
     const id = pool[(Math.random() * pool.length) | 0];
     this.micro = { id, until: now + CONFIG.micro.durMs[id] };
-    unlockBehavior(id);
+    if (id !== 'notice') unlockBehavior(id);   // notice 不進圖鑑——它是純粹的時刻，不是收集品
   }
 
   moveToward(tx, ty, dt, speed) {
@@ -103,6 +123,17 @@ export class Brain {
     this.tx = l.x; this.ty = l.y;
     this.speed = speed;
     this.sub = sub;
+    // 進窩不能穿牆：先走到洞口，再從門口鑽進去
+    this.via = id === 'hide' ? { x: HIDE_DOOR.x, y: HIDE_DOOR.y } : null;
+  }
+
+  // 帶中途點的移動（回傳是否抵達最終目標）
+  advance(dt) {
+    if (this.via) {
+      if (this.moveToward(this.via.x, this.via.y, dt, this.speed)) this.via = null;
+      return false;
+    }
+    return this.moveToward(this.tx, this.ty, dt, this.speed);
   }
 
   // ---- 燈光事件 ----
@@ -128,12 +159,14 @@ export class Brain {
   reactAfterFreeze(now) {
     const t = this.tier();
     if (t === 'stranger') {
-      this.set('hiding'); this.sub = 'retreat'; this.peek = false;
-      this.tx = HIDE.x; this.ty = HIDE.y; this.speed = CONFIG.runSpeed;
+      this.set('hiding');
+      this.walkToLoc('hide', CONFIG.runSpeed, 'retreat');
+      this.peek = false;
       emit('toast', '「哇——！是巨人！快逃快逃快逃！」');
     } else if (t === 'wary') {
-      this.set('hiding'); this.sub = 'retreat'; this.peek = true;
-      this.tx = HIDE.x; this.ty = HIDE.y; this.speed = CONFIG.walkSpeed * 1.6;
+      this.set('hiding');
+      this.walkToLoc('hide', CONFIG.walkSpeed * 1.6, 'retreat');
+      this.peek = true;
       emit('toast', '「是那個巨人…我先回窩邊，從這裡盯著你」');
     } else if (t === 'familiar') {
       this.set('active'); this.sub = 'idle'; this.timer = rand(1, 3);
@@ -147,8 +180,15 @@ export class Brain {
   // ---- 各狀態 ----
   updateSleeping(dt, now) {
     if (!gs.environment.lightOn) {
-      this.timer -= dt;                // 夜行性：黑暗中睡不久就醒
-      if (this.timer <= 0) { this.set('active'); this.sub = 'idle'; this.timer = rand(0.5, 2); }
+      this.timer -= dt;
+      if (this.timer <= 0) {
+        // 真實作息：晚上醒來活動；白天翻個身繼續睡（偶爾醒一下）
+        if (isNight(now) || !gs.records.firstNightDone || Math.random() < 0.25) {
+          this.set('active'); this.sub = 'idle'; this.timer = rand(0.5, 2);
+        } else {
+          this.timer = randMs(CONFIG.rhythm.dayNapS.map(s => s * 1000)) / 1000;
+        }
+      }
       return;
     }
     if (now >= this.nextPoseRotate) {  // 睡久了換個姿勢／地點
@@ -169,6 +209,18 @@ export class Brain {
     if (gs.gecko.locationId === 'hide') {
       const locs = Object.keys(CONFIG.locations).filter(id => id !== 'hide');
       this.walkToLoc(pick(locs), CONFIG.walkSpeed, 'walk');
+      return;
+    }
+    // 白天（真實時間）沒什麼精神，活動一下就想回去睡
+    if (!isNight(Date.now()) && gs.records.firstNightDone &&
+        Math.random() < CONFIG.rhythm.daySleepyChance) {
+      this.goSleep();
+      return;
+    }
+    // 肚子餓＋開燈＋不太怕你了：到玻璃邊眼巴巴討食
+    if (gs.environment.lightOn && gs.gecko.hunger <= 35 &&
+        this.tier() !== 'stranger' && Math.random() < 0.5) {
+      this.walkToLoc('glass', CONFIG.walkSpeed, 'beg_go');
       return;
     }
     const pool = ['walk', 'walk', 'walk', 'walk', 'rest', 'rest', 'lookout', 'lookout', 'stretch', 'dig', 'hop'];
@@ -199,26 +251,32 @@ export class Brain {
     if (this.sub === 'idle') {
       this.timer -= dt;
       if (this.timer <= 0) this.startIdleAction();
-    } else if (['rest', 'lookout', 'stretch', 'dig', 'hop', 'surf'].includes(this.sub)) {
+    } else if (['rest', 'lookout', 'stretch', 'dig', 'hop', 'surf', 'beg'].includes(this.sub)) {
       this.timer -= dt;
       if (this.timer <= 0) { this.sub = 'idle'; this.timer = randMs(CONFIG.night.pauseMs) / 1000; }
-    } else if (this.sub === 'surf_go' || this.sub === 'zoom') {
-      if (this.moveToward(this.tx, this.ty, dt, this.speed)) {
+    } else if (this.sub === 'surf_go' || this.sub === 'zoom' || this.sub === 'beg_go') {
+      if (this.advance(dt)) {
         gs.gecko.locationId = this.pendingLoc;
         if (this.sub === 'surf_go') {
           this.sub = 'surf';
           this.timer = randMs(CONFIG.idleAct.durS.surf.map(s => s * 1000)) / 1000;
           this.facing = 1;             // 面向右邊的玻璃
           if (this.visible()) unlockBehavior('surf');
+        } else if (this.sub === 'beg_go') {
+          this.sub = 'beg';
+          this.timer = randMs(CONFIG.idleAct.durS.beg.map(s => s * 1000)) / 1000;
+          this.facing = 1;             // 貼著玻璃看向巨人
+          if (this.visible()) unlockBehavior('beg');
         } else {
           this.sub = 'idle';
           this.timer = randMs(CONFIG.night.pauseMs) / 1000;
         }
       }
     } else if (this.sub === 'walk') {
-      if (this.moveToward(this.tx, this.ty, dt, this.speed)) {
+      if (this.advance(dt)) {
         gs.gecko.locationId = this.pendingLoc;
-        if (this.pendingLoc === 'water' && Math.random() < CONFIG.night.drinkChance) {
+        if (this.pendingLoc === 'water' &&
+            (!gs.records.firstNightDone || Math.random() < CONFIG.night.drinkChance)) {
           this.sub = 'drink';
           this.timer = randMs(CONFIG.night.drinkMs) / 1000;
           this.facing = 1;             // 面向水盆
@@ -229,9 +287,17 @@ export class Brain {
       }
     } else if (this.sub === 'drink') {
       this.timer -= dt;
-      if (this.timer <= 0) { this.sub = 'idle'; this.timer = randMs(CONFIG.night.pauseMs) / 1000; }
+      if (this.timer <= 0) {
+        this.sub = 'idle';
+        this.timer = randMs(CONFIG.night.pauseMs) / 1000;
+        if (!gs.records.firstNightDone && this.visible()) {
+          gs.records.firstNightDone = true;
+          emit('toast', '🌙 牠小心翼翼地喝了水——第一次在你面前活動');
+          diaryLog('第一個晚上。那個巨人安安靜靜的。我出去喝了水，沒有發生可怕的事。');
+        }
+      }
     } else if (this.sub === 'bedtime') {
-      if (this.moveToward(this.tx, this.ty, dt, this.speed)) this.fallAsleep(now);
+      if (this.advance(dt)) this.fallAsleep(now);
     }
   }
 
@@ -256,7 +322,7 @@ export class Brain {
       return;
     }
     if (this.sub === 'retreat') {
-      if (this.moveToward(this.tx, this.ty, dt, this.speed)) {
+      if (this.advance(dt)) {
         gs.gecko.locationId = 'hide';
         this.sub = 'in';
         this.timer = rand(4, 10);
@@ -332,9 +398,9 @@ export class Brain {
     // 吃完後回到對應好感度的反應
     const t = this.tier();
     if (gs.environment.lightOn && (t === 'stranger' || t === 'wary')) {
-      this.set('hiding'); this.sub = 'retreat'; this.peek = (t === 'wary');
-      this.tx = HIDE.x; this.ty = HIDE.y;
-      this.speed = t === 'stranger' ? CONFIG.runSpeed : CONFIG.walkSpeed * 1.6;
+      this.set('hiding');
+      this.walkToLoc('hide', t === 'stranger' ? CONFIG.runSpeed : CONFIG.walkSpeed * 1.6, 'retreat');
+      this.peek = (t === 'wary');
     } else {
       this.set('active'); this.sub = 'idle'; this.timer = rand(2, 5);
       if (gs.environment.lightOn) this.sleepAt = now + randMs(CONFIG.daySleep.delayMs);
@@ -386,9 +452,9 @@ export class Brain {
   endPet(now) {
     const t = this.tier();
     if (gs.environment.lightOn && (t === 'stranger' || t === 'wary')) {
-      this.set('hiding'); this.sub = 'retreat'; this.peek = (t === 'wary');
-      this.tx = HIDE.x; this.ty = HIDE.y;
-      this.speed = t === 'stranger' ? CONFIG.runSpeed : CONFIG.walkSpeed * 1.6;
+      this.set('hiding');
+      this.walkToLoc('hide', t === 'stranger' ? CONFIG.runSpeed : CONFIG.walkSpeed * 1.6, 'retreat');
+      this.peek = (t === 'wary');
     } else {
       this.set('active'); this.sub = 'idle'; this.timer = rand(1, 3);
       if (gs.environment.lightOn) this.sleepAt = now + randMs(CONFIG.daySleep.delayMs);
