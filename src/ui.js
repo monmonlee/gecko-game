@@ -132,6 +132,9 @@ export function init(_brain, _feeder, isNew) {
   // 點名字可以改名（給不小心關掉取名視窗、卡在「小肥」的朋友）
   $('g-name').addEventListener('click', () => openNameModal(true));
 
+  // 回主畫面
+  $('btn-home').addEventListener('click', () => openTitle(false));
+
   // 圖鑑分頁
   $('btn-dex').addEventListener('click', openDex);
   $('dex-close').addEventListener('click', () => $('dex').classList.add('hidden'));

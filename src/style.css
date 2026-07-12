@@ -55,7 +55,7 @@ html, body {
   gap: 5px;
 }
 
-#hud-top { display: flex; align-items: center; gap: 8px; }
+#hud-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 #g-name {
   font-size: 15px;
