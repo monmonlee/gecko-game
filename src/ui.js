@@ -265,6 +265,7 @@ export function init(_brain, _feeder, isNew) {
   refresh();
   // 測試模式：跳過封面／取名／前言，直接進遊戲（面板在頁面最下方）
   if (new URLSearchParams(location.search).has('debug')) {
+    $('title').classList.add('hidden');
     sound.setTrack('ambient');
   } else {
     openTitle(isNew);
