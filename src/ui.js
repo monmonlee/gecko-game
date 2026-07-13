@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 import { on } from './events.js';
 import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior, diaryLog } from './state.js';
-import { setMode, drawWorld, poseThumb, setZoom, isZoom, geckoMarkup, exportSVGString } from './render.js';
+import { setMode, drawWorld, poseThumb, setZoom, isZoom, geckoMarkup, exportSVGString, bugSVG } from './render.js';
 import * as sound from './sound.js';
 
 let brain, feeder;
@@ -33,6 +33,14 @@ export function preInit() {
   });
   on('sfx', name => sound.sfx(name));
   on('maxaffinity', openEnding);
+  // 監視器彩蛋：超大的臉懟上鏡頭
+  on('camface', () => {
+    const el = $('camface');
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 5300);
+  });
 }
 
 // ---- 新版本提醒橫幅：點一下清快取＋重載，一次到位 ----
@@ -108,11 +116,27 @@ export function init(_brain, _feeder, isNew) {
     if (!gs.environment.lightOn) return showToast('「黑漆漆的，我看不到蟲蟲啦」（開燈才能餵食）');
     const left = gs.timers.lastFedAt + CONFIG.feed.cooldownMs - now;
     if (left > 0) return showToast(`「我還很飽，肚子圓滾滾的～」（${fmt(left)} 後再餵）`);
+    $('handmenu').classList.add('hidden');
+    $('bugmenu').classList.toggle('hidden');   // 先選今天吃哪種蟲
+  });
+
+  // 選蟲選單
+  $('bug-list').innerHTML = Object.entries(CONFIG.bugs).map(([id, b]) => `
+    <button class="bug-btn" data-bug="${id}">
+      <span class="bug-icon">${bugSVG(id)}</span>
+      <span class="bug-name">${b.label}</span>
+    </button>`).join('');
+  $('bug-list').addEventListener('click', e => {
+    const btn = e.target.closest('.bug-btn');
+    if (!btn) return;
+    $('bugmenu').classList.add('hidden');
+    if (!gs.environment.lightOn || feeder.active || handBusy) return;
     setZoom(false);                    // 餵食要看全景
-    feeder.start(now);
-    showToast('🪱 移動手指引導蟲蟲——「那是什麼！扭來扭去的！」');
+    feeder.start(Date.now(), btn.dataset.bug);
+    showToast(`🪱 移動手指引導${CONFIG.bugs[btn.dataset.bug].label}——「那是什麼！在動！」`);
     refresh();
   });
+  $('bug-cancel').addEventListener('click', () => $('bugmenu').classList.add('hidden'));
 
   // 夾子：清大便＋收蛻皮
   $('btn-clamp').addEventListener('click', () => {
@@ -570,12 +594,30 @@ function openDex() {
       </div>`;
   }).join('');
 
+  // 蟲蟲收集：餵過才解鎖；發現最愛後那張卡蓋上 ❤️
+  const tried = new Set(gs.records.bugsTried || []);
+  const bugIds = Object.keys(CONFIG.bugs);
+  const bugCards = bugIds.map(id => {
+    const b = CONFIG.bugs[id];
+    const got = tried.has(id);
+    const fav = gs.records.favBugFound && gs.gecko.favBug === id;
+    return `
+      <div class="dexcard ${got ? '' : 'locked'}">
+        ${fav ? '<span class="rare">❤️</span>' : ''}
+        <div class="dex-art bug-art">${bugSVG(id)}</div>
+        <div class="dex-name">${got ? b.label : '？？？'}</div>
+        <div class="dex-quote">${got ? (fav ? '牠這輩子最愛的味道！' : b.desc) : '還沒餵過這種蟲'}</div>
+      </div>`;
+  }).join('');
+
   $('dex-body').innerHTML = `
     <div class="dex-section">😴 睡姿收集 <span class="dex-count">${seenPoses.size}/${poseIds.length}</span></div>
     <div class="dex-grid">${poseCards}</div>
     <div class="dex-section">✨ 行為收集 <span class="dex-count">${seenActs.size}/${actIds.length}</span></div>
     <div class="dex-grid">${actCards}</div>
-    <div class="modal-note">開燈或夜視時親眼看到，才算收集到唷</div>`;
+    <div class="dex-section">🪱 蟲蟲收集 <span class="dex-count">${tried.size}/${bugIds.length}</span></div>
+    <div class="dex-grid">${bugCards}</div>
+    <div class="modal-note">開燈或夜視時親眼看到，才算收集到唷。牠有一種最愛的蟲，餵到就知道了 ❤️</div>`;
   $('dex').classList.remove('hidden');
 }
 
@@ -836,6 +878,7 @@ const MICRO_LINES = {
   wink:      '👀（睜一隻眼閉一隻眼…牠在偷看你有沒有在看牠）',
   lick_lips: '😋「嘴巴舔一舔～蟲蟲的味道」',
   notice:    '……牠停了下來，朝你這邊看了一下。',
+  camface:   '📹「這個黑黑圓圓的東西是什麼？（聞聞）（哈—氣）」',
 };
 
 function statusText() {
@@ -922,6 +965,7 @@ function initDebug() {
   mk('想睡覺', () => { brain.sleepAt = Date.now(); });
   mk('換睡姿', () => { brain.nextPoseRotate = Date.now(); });
   mk('大便出現', () => { gs.timers.nextPoopAt = Date.now(); tickWorld(Date.now()); });
+  mk('懟臉鏡頭', () => { brain.micro = { id: 'camface', until: Date.now() + 5200 }; document.getElementById('camface').classList.add('show'); setTimeout(() => document.getElementById('camface').classList.remove('show'), 5300); });
   mk('開始脫皮', () => { gs.timers.nextShedAt = Date.now(); gs.timers.shedEndAt = 0; gs.gecko.isShedding = false; tickWorld(Date.now()); });
   mk('完成脫皮', () => { if (gs.gecko.isShedding) { gs.timers.shedEndAt = Date.now(); tickWorld(Date.now()); } });
   mk('老 7 天', () => { gs.timers.createdAt -= 7 * 86400000; });

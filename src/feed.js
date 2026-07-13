@@ -1,6 +1,8 @@
 import { CONFIG } from './config.js';
+import { bugSVG } from './render.js';
 
 // 餵食 session：蟲以緩動跟隨手指／滑鼠，守宮追蟲，夠近就撲食
+// 蟲的種類由玩家在選單挑選，每種手感不同（蟋蟀彈、蟑螂快、麵包蟲慢）
 export class Feeder {
   constructor(stage, brain, onChange) {
     this.stage = stage;
@@ -21,8 +23,12 @@ export class Feeder {
     };
   }
 
-  start(now) {
+  start(now, bug = 'mealworm') {
     this.active = true;
+    this.bug = bug;
+    this.lerp = CONFIG.feed.bugLerp[bug] ?? CONFIG.feed.wormLerp;
+    this.el.innerHTML = bugSVG(bug);
+    this.el.classList.toggle('hop', bug.includes('cricket'));   // 蟋蟀會蹦蹦跳
     this.wormPos = { x: 160, y: 110 };
     this.pointer = { x: 160, y: 150 };
     this.el.style.display = 'block';
@@ -51,10 +57,10 @@ export class Feeder {
 
   update(dt) {
     if (!this.active) return;
-    // 幀率無關的緩動
-    const k = 1 - Math.pow(1 - CONFIG.feed.wormLerp, dt * 60);
+    // 幀率無關的緩動（係數依蟲種）
+    const k = 1 - Math.pow(1 - (this.lerp ?? CONFIG.feed.wormLerp), dt * 60);
     this.wormPos.x += (this.pointer.x - this.wormPos.x) * k;
     this.wormPos.y += (this.pointer.y - this.wormPos.y) * k;
-    this.el.style.transform = `translate(${this.wormPos.x - 9}px, ${this.wormPos.y - 5}px)`;
+    this.el.style.transform = `translate(${this.wormPos.x - 11}px, ${this.wormPos.y - 7}px)`;
   }
 }

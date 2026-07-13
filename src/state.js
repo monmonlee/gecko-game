@@ -21,6 +21,7 @@ function defaultState(now, name) {
       currentActivity: 'sleeping',
       sleepPoseId: 'hide_tail',
       locationId: 'hide',
+      favBug: ['mealworm', 'black_cricket', 'white_cricket', 'roach'][(Math.random() * 4) | 0],
     },
     environment: {
       lightOn: false,
@@ -59,6 +60,8 @@ function defaultState(now, name) {
       photos: [],
       firstNightDone: false,          // 第一晚的「保證時刻」演過了沒
       fullTrustShown: false,          // 好感 100 的感謝畫面顯示過了沒
+      bugsTried: [],                  // 餵過的蟲種
+      favBugFound: false,             // 找到牠的最愛了沒
     },
   };
 }

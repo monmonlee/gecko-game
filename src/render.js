@@ -14,7 +14,7 @@ export function initScene() {
   emoteEl = document.getElementById('emote');
   traceEl = document.getElementById('trace');
   geckoEl.innerHTML = geckoMarkup();
-  wormEl.innerHTML = wormSVG();
+  wormEl.innerHTML = bugSVG('mealworm');
   // 家具全部用 SVG 畫（跟守宮同一套工法），看得出是什麼東西
   document.getElementById('water').innerHTML = waterSVG();
   document.getElementById('driftwood').innerHTML = driftwoodSVG();
@@ -23,8 +23,48 @@ export function initScene() {
   document.getElementById('mossbox').innerHTML = mossboxSVG();
   document.getElementById('heatmat').innerHTML = heatmatSVG();
   document.getElementById('hide').innerHTML = hideSVG();
+  document.getElementById('camface').innerHTML = camfaceSVG();
   makeNoise();
   makeDust();
+}
+
+// 監視器彩蛋：發現鏡頭的超級大臉（懟到鏡頭前）
+function camfaceSVG() {
+  return `
+<svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice">
+  <!-- 大頭從下面擠進來 -->
+  <ellipse cx="160" cy="235" rx="200" ry="175" fill="#C08552"/>
+  <!-- 額頭深色帶＋乳白鑲邊 -->
+  <path d="M-10 115 Q160 55 330 115 L330 75 Q160 15 -10 75 Z" fill="#5C3A28"/>
+  <path d="M-10 115 Q160 55 330 115" stroke="#EFE3D0" stroke-width="7" fill="none"/>
+  <!-- 斑點 -->
+  <circle cx="60" cy="150" r="7" fill="#7A4E30"/>
+  <circle cx="262" cy="146" r="6" fill="#7A4E30"/>
+  <circle cx="105" cy="128" r="5" fill="#7A4E30"/>
+  <circle cx="222" cy="126" r="5.5" fill="#7A4E30"/>
+  <!-- 兩顆超大眼睛，直直盯著鏡頭 -->
+  <g class="cam-eye">
+    <circle cx="88" cy="132" r="40" fill="#EFE3D0"/>
+    <circle cx="88" cy="134" r="31" fill="#241812"/>
+    <circle cx="99" cy="122" r="9" fill="#fff"/>
+    <circle cx="80" cy="142" r="3.5" fill="#fff" opacity=".8"/>
+  </g>
+  <g class="cam-eye">
+    <circle cx="232" cy="132" r="40" fill="#EFE3D0"/>
+    <circle cx="232" cy="134" r="31" fill="#241812"/>
+    <circle cx="243" cy="122" r="9" fill="#fff"/>
+    <circle cx="224" cy="142" r="3.5" fill="#fff" opacity=".8"/>
+  </g>
+  <!-- 鼻孔＋人中 -->
+  <ellipse cx="146" cy="196" rx="5" ry="7" fill="#241812" opacity=".85"/>
+  <ellipse cx="174" cy="196" rx="5" ry="7" fill="#241812" opacity=".85"/>
+  <path d="M160 205 L160 222" stroke="#8a5b40" stroke-width="3" opacity=".6"/>
+  <!-- 滿足的大嘴線 -->
+  <path d="M42 216 Q160 252 278 216" stroke="#241812" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- 鼻息呵在鏡頭上的霧氣 -->
+  <ellipse class="fog" cx="146" cy="212" rx="26" ry="13" fill="#fff"/>
+  <ellipse class="fog" cx="176" cy="214" rx="30" ry="15" fill="#fff"/>
+</svg>`;
 }
 
 // ---- 家具 SVG ----
@@ -649,16 +689,53 @@ const POSE_SVGS = {
 </svg>`,
 };
 
-function wormSVG() {
+// ---- 四種蟲蟲 ----
+function cricketSVG(body, head, leg, eye) {
   return `
-<svg viewBox="0 0 18 10" width="18" height="10" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 24 15" xmlns="http://www.w3.org/2000/svg">
   <g class="wiggle">
-    <circle cx="4"    cy="6"   r="2.6" fill="#e2977a"/>
-    <circle cx="8.5"  cy="4.6" r="2.8" fill="#d98a68"/>
-    <circle cx="13.5" cy="5.6" r="3"   fill="#c97a58"/>
-    <circle cx="14.6" cy="4.8" r="0.5" fill="#241812"/>
+    <path d="M9 9 L4.5 3.5 L6 2.8 L11 8 Z" fill="${head}"/>
+    <path d="M4.5 3.5 L2.5 9" stroke="${head}" stroke-width="1.3" fill="none"/>
+    <ellipse cx="13" cy="9.5" rx="7" ry="3.4" fill="${body}"/>
+    <ellipse cx="17.5" cy="8.6" rx="3" ry="2.4" fill="${head}"/>
+    <path d="M7 9 Q12 7.4 16 8.4" stroke="${leg}" stroke-width=".8" fill="none" opacity=".8"/>
+    <path d="M19.5 7.2 Q22 4 23 2" stroke="${head}" stroke-width=".8" fill="none"/>
+    <path d="M19 8.2 Q22 6.5 23 5" stroke="${head}" stroke-width=".8" fill="none"/>
+    <circle cx="18.6" cy="8" r=".8" fill="${eye}"/>
+    <path d="M14 12 L13 14.5 M16.5 12 L17 14.5" stroke="${leg}" stroke-width=".9"/>
   </g>
 </svg>`;
+}
+
+const BUG_SVGS = {
+  mealworm: `
+<svg viewBox="0 0 20 12" xmlns="http://www.w3.org/2000/svg">
+  <g class="wiggle">
+    <circle cx="4.5"  cy="7"   r="2.6" fill="#e0b36a"/>
+    <circle cx="9"    cy="5.6" r="2.8" fill="#d3a355"/>
+    <circle cx="14"   cy="6.6" r="3"   fill="#c19048"/>
+    <path d="M6.8 5.4 L6.8 8.6 M11.4 4.4 L11.4 7.6" stroke="#a87c3c" stroke-width=".7" opacity=".7"/>
+    <circle cx="15.4" cy="5.8" r=".55" fill="#241812"/>
+  </g>
+</svg>`,
+  black_cricket: cricketSVG('#3d3733', '#2a2624', '#241f1c', '#0f0d0c'),
+  white_cricket: cricketSVG('#e8dcc8', '#d4c2a2', '#c0ac88', '#241812'),
+  roach: `
+<svg viewBox="0 0 24 13" xmlns="http://www.w3.org/2000/svg">
+  <g class="wiggle">
+    <ellipse cx="11.5" cy="6.8" rx="8.5" ry="4" fill="#8a4a2e"/>
+    <path d="M6 3.8 Q6.5 6.8 6 9.8 M9 3.2 Q9.5 6.8 9 10.3 M12 3.2 Q12.5 6.8 12 10.3 M15 3.7 Q15.4 6.8 15 9.9"
+          stroke="#6d3620" stroke-width=".8" fill="none"/>
+    <ellipse cx="19" cy="6.4" rx="2.2" ry="1.8" fill="#5e2d18"/>
+    <path d="M20.5 5.2 Q22.5 2.6 23.2 1 M20.5 6.8 Q23 6.2 24 4.8" stroke="#6d3620" stroke-width=".7" fill="none"/>
+    <path d="M6.5 10.3 L5 12.4 M10.5 10.8 L10 12.8 M14.5 10.6 L15.5 12.6" stroke="#5e2d18" stroke-width=".8"/>
+    <circle cx="19.7" cy="6" r=".5" fill="#1c0f08"/>
+  </g>
+</svg>`,
+};
+
+export function bugSVG(id) {
+  return BUG_SVGS[id] || BUG_SVGS.mealworm;
 }
 
 // 夜視雜訊貼圖（程式生成，美術不用畫）

@@ -14,7 +14,7 @@
 <title>守宮陪伴 🦎</title>
 <style>
 /* 保底樣式：就算主要樣式還沒載入，也不要讓選單、蟲、手掌攤在畫面上 */
-#handmenu.hidden, #modal.hidden, #prologue.hidden, #title.hidden, #ending.hidden, #update-banner.hidden { display: none; }
+#handmenu.hidden, #modal.hidden, #prologue.hidden, #title.hidden, #ending.hidden, #update-banner.hidden, #bugmenu.hidden { display: none; }
 #hand, #worm, #poop, #shedskin { display: none; }
 body { background: #14110d; color: #e8ddc9; }
 </style>
@@ -84,6 +84,7 @@ body { background: #14110d; color: #e8ddc9; }
         <div id="hand"><span>🤚</span></div>
         <div id="worm"></div>
       </div>
+      <div id="camface"></div>
       <div id="lamp"></div>
       <div id="lightbeam"></div>
       <div id="dust"></div>
@@ -106,6 +107,12 @@ body { background: #14110d; color: #e8ddc9; }
     <button id="btn-hand"><span class="ico">🖐️</span><span class="lbl">手</span><span class="sub"></span></button>
     <button id="btn-scale"><span class="ico">⚖️</span><span class="lbl">磅秤</span><span class="sub"></span></button>
   </nav>
+
+  <div id="bugmenu" class="hidden">
+    <div class="bugmenu-title">🪱 今天吃哪一種？</div>
+    <div id="bug-list"></div>
+    <button id="bug-cancel">先不餵了</button>
+  </div>
 
   <div id="handmenu" class="hidden">
     <button id="pet-mode">🤚 摸摸牠<span>好感越高越容易成功</span></button>
@@ -188,7 +195,8 @@ body { background: #14110d; color: #e8ddc9; }
           <p class="help-list">
             🔦 <b>燈光</b>：開燈才能互動，但低好感時牠會躲<br>
             🥽 <b>夜視</b>：關燈限定，純觀察不打擾<br>
-            🪱 <b>餵食</b>：移動手指引導蟲蟲，牠會追上來撲食<br>
+            🪱 <b>餵食</b>：黑蟋蟀／白蟋蟀／蟑螂／麵包蟲任選，手指引導牠追<br>
+            ❤️ 牠偷偷有一種<b>最愛的蟲</b>，餵到就知道了<br>
             🗜️ <b>夾子</b>：清大便、收蛻皮（有東西時才亮）<br>
             🖐️ <b>手</b>：摸摸，或手心朝上等牠爬上來<br>
             ⚖️ <b>磅秤</b>：量體重、看成長曲線

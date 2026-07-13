@@ -185,6 +185,49 @@ html, body {
     transparent 43%, transparent 56%, rgba(255,255,255,.04) 59%, transparent 63%);
 }
 
+/* ---------- 監視器彩蛋：懟臉大特寫 ---------- */
+#camface {
+  position: absolute;
+  inset: 0;
+  z-index: 36;                 /* 世界之上、雜訊掃描線之下（保留監視器質感） */
+  display: none;
+  pointer-events: none;
+  overflow: hidden;
+}
+#camface.show { display: block; }
+#camface svg {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 90%;
+  animation: camface-seq 5.2s ease-in-out forwards;
+}
+@keyframes camface-seq {
+  0%   { transform: translateY(105%) scale(.3); }
+  15%  { transform: translateY(0) scale(1.03); }
+  24%  { transform: translateY(0) scale(1) rotate(0deg); }
+  38%  { transform: translateY(0) scale(1.06) rotate(2deg); }
+  52%  { transform: translateY(0) scale(1) rotate(-2.5deg); }
+  68%  { transform: translateY(0) scale(1.08) rotate(0deg); }
+  84%  { transform: translateY(0) scale(1); }
+  100% { transform: translateY(108%) scale(.32); }
+}
+#camface .fog {
+  opacity: 0;
+  animation: lens-fog 1.4s ease-in-out 3;
+  animation-delay: .9s;
+}
+@keyframes lens-fog {
+  30% { opacity: .4; }
+  60% { opacity: .12; }
+  100% { opacity: 0; }
+}
+/* 夜視濾鏡也要蓋到大臉上（它在 #world 外面） */
+#stage.mode-nv #camface {
+  filter: brightness(1.5) grayscale(1) sepia(1) hue-rotate(55deg) saturate(3.2) contrast(1.06) brightness(.92);
+}
+/* 牠跑去鏡頭前的期間，缸裡看不到牠 */
+.gk.micro-camface { visibility: hidden; }
+
 /* 開燈的斜射光束＋光裡漂浮的灰塵 */
 #lightbeam {
   position: absolute;
@@ -595,10 +638,17 @@ html, body {
 #worm {
   position: absolute;
   left: 0; top: 0;
-  width: 18px; height: 10px;
+  width: 22px; height: 14px;
   z-index: 35;
   display: none;
   will-change: transform;
+}
+#worm svg { display: block; width: 100%; height: 100%; overflow: visible; }
+#worm.hop svg { animation: bug-hop .55s ease-in-out infinite; }   /* 蟋蟀蹦蹦跳 */
+@keyframes bug-hop {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-5px); }
+  60% { transform: translateY(0); }
 }
 #worm .wiggle {
   transform-box: fill-box;
@@ -749,6 +799,55 @@ html, body {
   #buttons { grid-template-columns: repeat(3, 1fr); }
   #buttons button { min-height: 56px; }
 }
+
+/* ---------- 選蟲選單 ---------- */
+#bugmenu {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 14px;
+  padding: 10px;
+  z-index: 80;
+  width: min(86vw, 300px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .55);
+}
+.bugmenu-title { font-size: 12px; text-align: center; margin-bottom: 8px; }
+#bug-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+.bug-btn {
+  background: #2f2820;
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 8px 4px;
+  cursor: pointer;
+  touch-action: manipulation;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.bug-btn .bug-icon svg { width: 34px; height: 22px; display: block; }
+#bug-cancel {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 8px 6px 2px;
+  cursor: pointer;
+}
+.dex-art.bug-art svg { width: 42px; height: 28px; }
 
 /* ---------- 手的選單 ---------- */
 #handmenu {

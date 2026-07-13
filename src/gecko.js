@@ -101,10 +101,13 @@ export class Brain {
       if (env.viewMode === 'nightvision' && !env.lightOn &&
           ['familiar', 'trust'].includes(this.tier())) {
         pool.push('notice', 'notice');
+        // 稀有：發現監視器，超大的臉懟上鏡頭
+        if (Math.random() < 0.5) pool.push('camface');
       }
     }
     const id = pool[(Math.random() * pool.length) | 0];
     this.micro = { id, until: now + CONFIG.micro.durMs[id] };
+    if (id === 'camface') emit('camface');
     if (id !== 'notice') unlockBehavior(id);   // notice 不進圖鑑——它是純粹的時刻，不是收集品
   }
 
@@ -360,6 +363,7 @@ export class Brain {
   startHunt(session, now) {
     session.startedAt = now;
     this.hunt = session;
+    this.micro = null;                 // 打斷進行中的小動作（例如正在懟鏡頭）
     this.set('hunting');               // 蟲的吸引力蓋過恐懼，會從窩裡出來
     this.sub = 'chase';
     this.sleepAt = Infinity;
@@ -405,12 +409,32 @@ export class Brain {
     gs.gecko.weightGrams = computeWeight();
     gs.timers.nextPoopAt = now + randMs(CONFIG.poop.delayMs);   // 吃飽了，之後某個時刻會「嗯嗯」
     addAffinity(CONFIG.affinity.feed, '餵我吃蟲蟲');
-    emit('toast', pick([
-      '「嗷嗚！！蟲蟲！好吃！！尾巴又可以變胖了嘿嘿」',
-      '「一口！蟲蟲就是要一口吞！」',
-      '「唔嗯～～蟲蟲的味道，就是幸福的味道」',
-      '「好吃！…還有嗎？沒有了嗎。好吧，下次見。」',
-    ]));
+    // 蟲蟲圖鑑與「最愛」判定
+    const bugId = s.bug || 'mealworm';
+    const bugCfg = CONFIG.bugs[bugId] || CONFIG.bugs.mealworm;
+    gs.records.bugsTried ??= [];
+    if (!gs.records.bugsTried.includes(bugId)) {
+      gs.records.bugsTried.push(bugId);
+      emit('toast', `🪱 蟲蟲圖鑑＋1：${bugCfg.label}`);
+      emit('sfx', 'unlock');
+    }
+    if (bugId === gs.gecko.favBug) {
+      addAffinity(1, '最愛的蟲蟲');
+      if (!gs.records.favBugFound) {
+        gs.records.favBugFound = true;
+        emit('toast', `😻「！！！是${bugCfg.label}！！我這輩子最愛這個！！」`);
+        diaryLog(`今天吃到${bugCfg.label}。就是它。我這輩子最愛的味道，被巨人發現了。`, 6, now);
+      } else {
+        emit('toast', `😻「${bugCfg.label}！最愛！尾巴都翹起來了！」`);
+      }
+    } else {
+      emit('toast', pick([
+        '「嗷嗚！！蟲蟲！好吃！！尾巴又可以變胖了嘿嘿」',
+        '「一口！蟲蟲就是要一口吞！」',
+        '「唔嗯～～蟲蟲的味道，就是幸福的味道」',
+        '「好吃！…還有嗎？沒有了嗎。好吧，下次見。」',
+      ]));
+    }
     emit('sfx', 'eat');
     this.micro = { id: 'lick_lips', until: now + CONFIG.micro.durMs.lick_lips };
     unlockBehavior('lick_lips');

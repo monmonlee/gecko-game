@@ -13,7 +13,10 @@ export const CONFIG = {
     cooldownMs: 3 * 3600 * 1000,      // 餵食冷卻 3 小時（真實時間）
     guideMinMs: 5000,                 // 至少引導 5 秒才會撲食
     pounceDist: 26,                   // 距離夠近觸發撲食（stage px）
-    wormLerp: 0.14,                   // 蟲跟隨手指的緩動係數
+    wormLerp: 0.14,                   // 蟲跟隨手指的緩動係數（預設）
+    bugLerp: {                        // 每種蟲的手感：蟋蟀彈、蟑螂快、麵包蟲慢
+      mealworm: 0.12, black_cricket: 0.2, white_cricket: 0.18, roach: 0.26,
+    },
     huntSpeed: 42,                    // 追蟲速度 px/s
     pounceSpeed: 240,                 // 撲食衝刺速度
     touchLift: 30,                    // 手機觸控時蟲浮在手指上方的距離，避免被指頭擋住
@@ -130,6 +133,7 @@ export const CONFIG = {
     zoom:       { icon: '💨', label: '深夜衝刺',         desc: '半夜突然全速衝過整個缸（原因不明）' },
     surf:       { icon: '🧗', label: '爬玻璃',           desc: '扒著玻璃想出去玩，肚皮全貼在上面' },
     beg:        { icon: '🥺', label: '討食蟲蟲',         desc: '肚子餓的時候，隔著玻璃眼巴巴看著你' },
+    camface:    { icon: '📹', label: '懟臉查看',         desc: '發現了監視器！超大的臉湊上來聞鏡頭' },
   },
 
   idleAct: {                            // 各種日常行為的持續秒數
@@ -139,7 +143,15 @@ export const CONFIG = {
   micro: {                              // 睡覺／發呆時的隨機小動作
     firstMs: [12000, 30000],
     gapMs: [20000, 60000],
-    durMs: { yawn: 2500, eyelick: 1800, blep: 6000, wink: 5000, lick_lips: 1600, notice: 4500 },
+    durMs: { yawn: 2500, eyelick: 1800, blep: 6000, wink: 5000, lick_lips: 1600, notice: 4500, camface: 5200 },
+  },
+
+  // 蟲蟲圖鑑：每隻守宮出生時隨機決定一種「最愛」，餵到會特別開心
+  bugs: {
+    mealworm:      { label: '麵包蟲',       desc: '軟軟的入門款，守宮界的白飯' },
+    black_cricket: { label: '黑蟋蟀',       desc: '彈跳力驚人，追起來最有成就感' },
+    white_cricket: { label: '白蟋蟀',       desc: '溫和的蟋蟀，殼薄好消化' },
+    roach:         { label: '蟑螂（杜比亞）', desc: '爬得飛快、營養滿分的活力點心' },
   },
 
   rhythm: {                             // 真實世界作息：晚上（19:00–07:00）才是牠的時間
