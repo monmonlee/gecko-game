@@ -428,21 +428,17 @@ export class Brain {
         emit('toast', `😻「${bugCfg.label}！最愛！尾巴都翹起來了！」`);
       }
     } else {
-      emit('toast', pick([
-        '「嗷嗚！！蟲蟲！好吃！！尾巴又可以變胖了嘿嘿」',
-        '「一口！蟲蟲就是要一口吞！」',
-        '「唔嗯～～蟲蟲的味道，就是幸福的味道」',
-        '「好吃！…還有嗎？沒有了嗎。好吧，下次見。」',
-      ]));
+      // 每種蟲有專屬食評
+      emit('toast', pick(bugCfg.lines || ['「嗷嗚！！蟲蟲！好吃！！」']));
     }
     emit('sfx', 'eat');
     this.micro = { id: 'lick_lips', until: now + CONFIG.micro.durMs.lick_lips };
     unlockBehavior('lick_lips');
     diaryLog(pick([
-      '抓到蟲蟲吃掉了！尾巴應該又胖了一點，很滿意。',
-      '今天的蟲蟲很好吃。尾巴的收藏＋1。',
-      '吃到蟲蟲了。是巨人給的。……有記住。',
-      '蟲蟲逃得很努力，但我更努力。',
+      `今天吃了${bugCfg.label}。尾巴應該又胖了一點，很滿意。`,
+      `巨人給了我${bugCfg.label}。……有記住。`,
+      `${bugCfg.label}逃得很努力，但我更努力。`,
+      '抓到蟲蟲吃掉了！今天是好日子。',
     ]), 3, now);
     s.onCaught();
     // 吃完後回到對應好感度的反應
