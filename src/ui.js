@@ -263,7 +263,12 @@ export function init(_brain, _feeder, isNew) {
   initDebug();
   setInterval(refresh, 300);
   refresh();
-  openTitle(isNew);
+  // 測試模式：跳過封面／取名／前言，直接進遊戲（面板在頁面最下方）
+  if (new URLSearchParams(location.search).has('debug')) {
+    sound.setTrack('ambient');
+  } else {
+    openTitle(isNew);
+  }
 }
 
 // ---- 封面（主畫面）----
