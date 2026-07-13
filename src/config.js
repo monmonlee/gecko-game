@@ -78,7 +78,7 @@ export const CONFIG = {
   },
 
   locations: {
-    hide:      { x: 44,  y: 200, label: '躲窩' },
+    hide:      { x: 44,  y: 200, label: '躲避屋' },
     plant:     { x: 103, y: 198, label: '植物下' },
     mossbox:   { x: 139, y: 212, label: '苔蘚盒' },
     driftwood: { x: 150, y: 172, label: '流木上' },

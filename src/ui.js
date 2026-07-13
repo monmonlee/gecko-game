@@ -35,6 +35,21 @@ export function preInit() {
   on('maxaffinity', openEnding);
 }
 
+// ---- 新版本提醒橫幅：點一下清快取＋重載，一次到位 ----
+export function showUpdateBanner() {
+  const b = $('update-banner');
+  if (!b.classList.contains('hidden')) return;
+  b.classList.remove('hidden');
+  b.addEventListener('click', async () => {
+    b.textContent = '更新中…';
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    } catch (e) { /* 清不掉就靠重載 */ }
+    location.reload();
+  }, { once: true });
+}
+
 // ---- 好感 100：感謝畫面（一次性） ----
 function openEnding() {
   const name = gs.gecko.name;
@@ -531,10 +546,14 @@ function openDex() {
   const poseCards = poseIds.map(id => {
     const p = CONFIG.poses[id];
     const got = seenPoses.has(id);
+    // 專屬睡姿用專屬圖；側面圖系套上該睡姿的變形＋閉眼＋迷你場景道具
+    const art = p.own
+      ? poseThumb(id)
+      : `<div class="mini-scene art-${id}"><div class="gk sprite pose-${id} eyes-closed">${poseThumb(id)}</div></div>`;
     return `
       <div class="dexcard ${got ? '' : 'locked'}">
         ${p.rare ? '<span class="rare">⭐</span>' : ''}
-        <div class="dex-art">${poseThumb(id)}</div>
+        <div class="dex-art">${art}</div>
         <div class="dex-name">${got ? p.label : '？？？'}</div>
         <div class="dex-quote">${got ? `「${p.quote}」` : '還沒看過這個睡姿'}</div>
       </div>`;

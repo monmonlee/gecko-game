@@ -1101,6 +1101,80 @@ html, body {
 .dex-art svg { width: 52px; height: 52px; overflow: visible; }
 .dex-art svg.thumb-side { width: 60px; height: 30px; }
 .dex-art .breathe-g { animation: none; }
+
+/* 側面圖系縮圖：套睡姿變形＋迷你場景道具 */
+.mini-scene {
+  position: relative;
+  width: 60px;
+  height: 50px;
+}
+.mini-scene .gk {
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 60px; height: 34px;
+  transform-origin: 50% 100%;
+}
+.mini-scene .gk svg.pv-side { width: 60px; height: 30px; }
+/* 躲避屋三兄弟：小屋遮不同位置 */
+.art-hide_tail::after, .art-halfout::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 38px; height: 24px;
+  background: radial-gradient(ellipse 105% 135% at 35% -10%, #7d5a3e 0%, #6b4a33 52%, #503722 100%);
+  border-radius: 18px 18px 3px 3px;
+}
+.art-hide_tail::after { right: -2px; }      /* 頭在屋裡，尾巴露外面 */
+.art-halfout::after { left: -4px; }         /* 上半身探出屋外 */
+.art-roof::before {                          /* 睡屋頂：踩在屋上 */
+  content: "";
+  position: absolute;
+  left: 11px; bottom: 0;
+  width: 38px; height: 20px;
+  background: radial-gradient(ellipse 105% 135% at 35% -10%, #7d5a3e 0%, #6b4a33 52%, #503722 100%);
+  border-radius: 16px 16px 3px 3px;
+}
+.art-roof .gk { bottom: 18px; }
+/* 地面道具 */
+.art-moss::before {
+  content: "";
+  position: absolute;
+  left: 8px; bottom: 0;
+  width: 44px; height: 12px;
+  background: #4e7a3a;
+  border-radius: 8px;
+  box-shadow: inset 0 -3px 0 #3f6330;
+}
+.art-moss .gk { bottom: 6px; }
+.art-belly::before {
+  content: "";
+  position: absolute;
+  left: 6px; bottom: 0;
+  width: 48px; height: 8px;
+  background: #7c4a3a;
+  border-radius: 4px;
+  box-shadow: inset 0 2px 0 rgba(255, 150, 90, .4);
+}
+.art-belly .gk { bottom: 5px; }
+.art-perch::before {
+  content: "";
+  position: absolute;
+  left: 4px; bottom: 2px;
+  width: 52px; height: 9px;
+  background: #6f4f34;
+  border-radius: 5px;
+  box-shadow: inset 0 -3px 0 #573b25;
+}
+.art-perch .gk { bottom: 9px; }
+.art-leaf::after {                           /* 葉蔭：一片葉子蓋上面 */
+  content: "";
+  position: absolute;
+  left: 4px; top: -2px;
+  width: 34px; height: 16px;
+  background: #5d8a48;
+  border-radius: 50% 60% 55% 60%;
+  box-shadow: 8px 4px 0 -4px #4c7440;
+}
 .dex-emoji { font-size: 30px; }
 .dex-name { font-size: 10px; margin-top: 4px; }
 .dex-quote { font-size: 8.5px; color: var(--text-dim); margin-top: 2px; min-height: 20px; line-height: 1.4; }
@@ -1183,6 +1257,27 @@ html, body {
   font-size: 9px;
   color: #5a4f3e;
 }
+
+/* ---------- 新版本提醒橫幅 ---------- */
+#update-banner {
+  position: fixed;
+  top: calc(10px + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: #5c4a28;
+  border: 1px solid #8a6f3d;
+  border-radius: 999px;
+  color: #ffd98a;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 9px 18px;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .5);
+  animation: banner-in .4s ease-out;
+}
+@keyframes banner-in { from { transform: translate(-50%, -20px); opacity: 0; } }
 
 /* ---------- 好感 100 感謝畫面 ---------- */
 #ending {

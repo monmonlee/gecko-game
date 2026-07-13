@@ -40,6 +40,19 @@ setInterval(() => {
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
 }
+
+// 版本更新提醒：定期比對線上版本，不同就顯示「點一下更新」橫幅
+if (import.meta.env.PROD) {
+  const checkUpdate = async () => {
+    try {
+      const r = await fetch(`./version.json?t=${Date.now()}`, { cache: 'no-store' });
+      const { v } = await r.json();
+      if (v && v !== __BUILD_ID__) ui.showUpdateBanner();
+    } catch (e) { /* 離線就算了 */ }
+  };
+  setTimeout(checkUpdate, 8000);            // 開遊戲 8 秒後查一次
+  setInterval(checkUpdate, 5 * 60 * 1000);  // 之後每 5 分鐘查一次
+}
 window.addEventListener('beforeunload', () => save(Date.now()));
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) save(Date.now());

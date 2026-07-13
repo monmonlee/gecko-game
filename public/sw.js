@@ -14,6 +14,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  if (req.url.includes('version.json')) return;   // 版本檢查永遠走網路，不吃快取
   e.respondWith(
     caches.open(CACHE).then(async cache => {
       const cached = await cache.match(req);
