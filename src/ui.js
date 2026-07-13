@@ -29,7 +29,7 @@ export function preInit() {
   on('tierup', tierId => {
     showToast(`💛 ${TIER_LINES[tierId] ?? '「你…好像跟別人不一樣。」'}`);
     sound.sfx('success');
-    if (TIER_DIARY[tierId]) diaryLog(TIER_DIARY[tierId]);
+    if (TIER_DIARY[tierId]) diaryLog(TIER_DIARY[tierId], 9);
   });
   on('sfx', name => sound.sfx(name));
 }
@@ -97,14 +97,14 @@ export function init(_brain, _feeder, isNew) {
       diaryLog(pickOne([
         '傑作被巨人收走了。家裡乾乾淨淨，舒服。',
         '巨人把便便收走了。他好像不覺得臭。真是個怪人。',
-      ]));
+      ]), 2);
     } else if (env.shedSkinPresent) {
       env.shedSkinPresent = false;
       gs.records.shedsCollected = (gs.records.shedsCollected || 0) + 1;
       addAffinity(CONFIG.affinity.shedCollect, '幫我收皮皮');
       showToast(`📦「那是我之前的皮皮！送你收藏～（第 ${gs.records.shedsCollected} 張）」`);
       sound.sfx('unlock');
-      diaryLog('舊皮皮被巨人收藏了。…有點害羞。');
+      diaryLog('舊皮皮被巨人收藏了。…有點害羞。', 4);
     } else {
       showToast('「缸裡很乾淨唷，沒東西要夾～」');
     }
@@ -217,7 +217,7 @@ export function init(_brain, _feeder, isNew) {
     }
     save(Date.now());
     showToast('📸 喀嚓！收進相簿了');
-    diaryLog('今天被「喀嚓」了一下。巨人拿著黑黑的東西對著我，那是什麼？');
+    diaryLog('今天被「喀嚓」了一下。巨人拿著黑黑的東西對著我，那是什麼？', 3);
   });
 
   // 相簿
@@ -376,7 +376,7 @@ function tickCompanionship() {
     addAffinity(CONFIG.affinity.companion, '安靜的陪伴');
     showToast('「…那個巨人今天也在，不吵也不鬧。有你在，好像可以睡得比較安心。」');
     sound.sfx('success');
-    diaryLog('巨人安安靜靜地看了我很久。有人陪的感覺，還不錯。');
+    diaryLog('巨人安安靜靜地看了我很久。有人陪的感覺，還不錯。', 4);
   }
 }
 
@@ -437,7 +437,7 @@ function startPetting() {
         '被大手摸了摸頭。…其實沒有很討厭。',
         '又被摸頭了。這次我沒有躲。進步吧？',
         '大手摸起來，暖暖的。只記錄事實。',
-      ]));
+      ]), 5);
       setTimeout(hideHand, CONFIG.pet.happyMs);
     } else {
       brain.petDodge();
@@ -451,7 +451,7 @@ function startPetting() {
       diaryLog(pickOne([
         '突然有一隻大手伸過來！嚇死我了！',
         '今天差點被大手抓到（並沒有，但很危險）。',
-      ]));
+      ]), 4);
       setTimeout(hideHand, 500);
     }
   }, CONFIG.pet.judgeDelayMs);
@@ -479,12 +479,12 @@ function startPalm() {
       addAffinity(CONFIG.affinity.handTame, '爬上你的手');
       showToast(`🎉「…你的手，暖暖的。」牠爬上你的手心了！（第 ${gs.records.handTameCount} 次）`);
       sound.sfx('fanfare');
-      diaryLog('我爬上了巨人的手心。暖暖的。這件事我要記很久很久。');
+      diaryLog('我爬上了巨人的手心。暖暖的。這件事我要記很久很久。', 10);
       setTimeout(hideHand, 4200);
     } else {
       brain.palmOff();
       showToast('「聞起來…不是蟲蟲。嗯，今天先這樣吧。」（牠轉頭走掉了，沒有扣好感）');
-      diaryLog('巨人把手掌放在我面前，攤平平的。聞了聞，不是蟲蟲。先不理他。');
+      diaryLog('巨人把手掌放在我面前，攤平平的。聞了聞，不是蟲蟲。先不理他。', 4);
       setTimeout(hideHand, 1200);
     }
   }, CONFIG.pet.palmWaitMs);
@@ -630,10 +630,11 @@ function openDiary() {
   } else {
     $('diary-body').innerHTML = diary.map(e => {
       const [, m, d] = e.date.split('-');
+      const line = e.line ?? (e.lines ? e.lines[e.lines.length - 1] : '') ?? '';
       return `
         <div class="diary-day">${Number(m)} 月 ${Number(d)} 日</div>
-        ${e.lines.map(l => `<div class="diary-line">${l}</div>`).join('')}`;
-    }).join('') + '<div class="modal-note">（牠會把每天發生的事記下來，最多留 60 天）</div>';
+        <div class="diary-line">${line}</div>`;
+    }).join('') + '<div class="modal-note">（每天一行：牠會記下當天最重要的一件事，最多留 60 天）</div>';
   }
   $('diary').classList.remove('hidden');
 }

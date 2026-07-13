@@ -297,7 +297,7 @@ export class Brain {
         if (!gs.records.firstNightDone && this.visible()) {
           gs.records.firstNightDone = true;
           emit('toast', '🌙 牠小心翼翼地喝了水——第一次在你面前活動');
-          diaryLog('第一個晚上。那個巨人安安靜靜的。我出去喝了水，沒有發生可怕的事。');
+          diaryLog('第一個晚上。那個巨人安安靜靜的。我出去喝了水，沒有發生可怕的事。', 9);
         }
       }
     } else if (this.sub === 'bedtime') {
@@ -407,7 +407,7 @@ export class Brain {
       '今天的蟲蟲很好吃。尾巴的收藏＋1。',
       '吃到蟲蟲了。是巨人給的。……有記住。',
       '蟲蟲逃得很努力，但我更努力。',
-    ]), now);
+    ]), 3, now);
     s.onCaught();
     // 吃完後回到對應好感度的反應
     const t = this.tier();

@@ -79,6 +79,9 @@ export function initState(now) {
   if (loaded && loaded.gecko) {
     gs = loaded;
     fillMissing(gs, defaultState(now, gs.gecko.name));
+    // 日記改版：舊格式（一天多行）轉成一天一行（取當天最後一句）
+    gs.records.diary = (gs.records.diary || []).map(e =>
+      e.line !== undefined ? e : { date: e.date, line: (e.lines && e.lines[e.lines.length - 1]) || '', w: 5 });
     settle(now);
   } else {
     // 取名字交給 ui 的遊戲內視窗（App 內建瀏覽器常會擋 window.prompt）
@@ -134,7 +137,7 @@ export function tickWorld(now) {
     diaryLog(pick([
       '在缸裡留下了一坨傑作。我很健康。',
       '嗯嗯很順利。健康的證明，放在缸裡給巨人看。',
-    ]), now);
+    ]), 2, now);
   }
 
   if (!t.nextShedAt) t.nextShedAt = now + randMs(CONFIG.shed.intervalMs);
@@ -144,7 +147,7 @@ export function tickWorld(now) {
     gs.gecko.isShedding = true;
     t.shedEndAt = now + randMs(CONFIG.shed.durationMs);
     emit('toast', '🤍「身體癢癢緊緊的…我要開始脫皮了，別擔心唷」');
-    diaryLog('身體變得白白緊緊的。要脫皮了。', now);
+    diaryLog('身體變得白白緊緊的。要脫皮了。', 5, now);
   }
 
   // 脫完皮：缸裡留下蛻皮
@@ -155,7 +158,7 @@ export function tickWorld(now) {
     env.shedSkinPresent = true;
     env.shedX = Math.round(70 + Math.random() * 180);
     emit('toast', '✨「呼——脫完了！我現在全身滑溜溜的！」');
-    diaryLog('脫完皮了！全身滑溜溜，是全新的我。', now);
+    diaryLog('脫完皮了！全身滑溜溜，是全新的我。', 6, now);
   }
 }
 
@@ -185,7 +188,7 @@ function settle(now) {
         dig:    '半夜挖了一個洞。挖到一半忘記為什麼要挖。',
         prints: '去水盆邊喝了水，沙子上留下小小的腳印。',
       };
-      diaryLog(lines[type], now);
+      diaryLog(lines[type], 2, now);
     } else {
       gs.environment.trace = null;
     }
@@ -200,7 +203,7 @@ function settle(now) {
     if (target < gs.gecko.affinity) {
       gs.gecko.affinity = target;
       emit('toast', '「好久不見…那個…你是誰來著…？」');
-      diaryLog('好多天沒有人來。…只有一點點無聊而已。', now);
+      diaryLog('好多天沒有人來。…只有一點點無聊而已。', 3, now);
     }
   }
 
@@ -231,13 +234,13 @@ function settle(now) {
       `巨人今天也來看我了。我在${locLabel}睡覺。`,
       `今天巨人也出現了。我在${locLabel}，假裝沒注意到他。`,
       `巨人來的時候，我正好在${locLabel}。他看了我一陣子。`,
-    ]), now);
+    ]), 1, now);
     if (t.streakDays === 7) {
       emit('toast', '💛「那個巨人，已經連續七天來看我了。……我有在數。」');
-      diaryLog('巨人連續七天都來了。這件事我有偷偷在數。', now);
+      diaryLog('巨人連續七天都來了。這件事我有偷偷在數。', 8, now);
     } else if (t.streakDays === 30) {
       emit('toast', '💛「三十天，每天都在。這樣的巨人，只有你一個。」');
-      diaryLog('連續三十天了。寫下來，不可以忘記。', now);
+      diaryLog('連續三十天了。寫下來，不可以忘記。', 8, now);
     }
   }
 }
@@ -284,18 +287,21 @@ const dateKey = now => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
-export function diaryLog(line, now = Date.now()) {
+// 每天只留一行：權重高（更重要的事）會蓋掉當天先前的紀錄
+// 權重參考：上手 10 > 好感升級／第一晚 9 > 連簽里程碑 8 > 脫皮完成 6 >
+//          被摸／脫皮開始 5 > 陪伴／收蛻皮 4 > 吃蟲／拍照 3 > 大便／痕跡 2 > 簽到 1
+export function diaryLog(line, w = 1, now = Date.now()) {
   const r = gs.records;
   r.diary ??= [];
   const key = dateKey(now);
-  let entry = r.diary[r.diary.length - 1];
+  const entry = r.diary[r.diary.length - 1];
   if (!entry || entry.date !== key) {
-    entry = { date: key, lines: [] };
-    r.diary.push(entry);
+    r.diary.push({ date: key, line, w });
     if (r.diary.length > 60) r.diary.shift();   // 只留最近 60 天
+  } else if (w >= (entry.w || 0)) {
+    entry.line = line;
+    entry.w = w;
   }
-  if (entry.lines.includes(line) || entry.lines.length >= 10) return;
-  entry.lines.push(line);
   save(now);
 }
 
