@@ -32,6 +32,24 @@ export function preInit() {
     if (TIER_DIARY[tierId]) diaryLog(TIER_DIARY[tierId], 9);
   });
   on('sfx', name => sound.sfx(name));
+  on('maxaffinity', openEnding);
+}
+
+// ---- 好感 100：感謝畫面（一次性） ----
+function openEnding() {
+  const name = gs.gecko.name;
+  $('ending-text').innerHTML = `
+    「……我完全信任你了。<br>
+    這件事，全世界只有你做到。」<br><br>
+    謝謝你把 ${name} 陪到這裡。💛<br>
+    你已經看過了牠全部的信任——<br>
+    接下來的故事（牠的一生，<br>
+    還有牠想留給你的東西）<br>
+    正在籌備中。<br><br>
+    在那之前，牠會繼續在缸裡，<br>
+    安心地睡在你看得到的地方。`;
+  $('ending').classList.remove('hidden');
+  sound.sfx('fanfare');
 }
 
 export function init(_brain, _feeder, isNew) {
@@ -141,6 +159,13 @@ export function init(_brain, _feeder, isNew) {
 
   // 回主畫面
   $('btn-home').addEventListener('click', () => openTitle(false));
+
+  // 好感 100 感謝畫面的按鈕
+  $('ending-continue').addEventListener('click', () => $('ending').classList.add('hidden'));
+  $('ending-home').addEventListener('click', () => {
+    $('ending').classList.add('hidden');
+    openTitle(false);
+  });
 
   // 圖鑑分頁
   $('btn-dex').addEventListener('click', openDex);

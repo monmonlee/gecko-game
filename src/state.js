@@ -58,6 +58,7 @@ function defaultState(now, name) {
       diary: [],
       photos: [],
       firstNightDone: false,          // 第一晚的「保證時刻」演過了沒
+      fullTrustShown: false,          // 好感 100 的感謝畫面顯示過了沒
     },
   };
 }
@@ -257,6 +258,12 @@ export function addAffinity(delta, reason) {
   emit('affinity', { delta, reason });
   const after = tierOf(gs.gecko.affinity);
   if (delta > 0 && after.id !== before) emit('tierup', after.id);
+  // 好感滿 100：一次性的感謝畫面
+  if (gs.gecko.affinity >= 100 && !gs.records.fullTrustShown) {
+    gs.records.fullTrustShown = true;
+    diaryLog('今天，我把最後一點點的害怕也收起來了。一百分的信任，全部給你。', 9);
+    emit('maxaffinity');
+  }
   save(Date.now());
 }
 

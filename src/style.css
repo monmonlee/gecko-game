@@ -1184,6 +1184,51 @@ html, body {
   color: #5a4f3e;
 }
 
+/* ---------- 好感 100 感謝畫面 ---------- */
+#ending {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: radial-gradient(ellipse 130% 90% at 50% 30%, #2c2418, #0b0906 75%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+#ending.hidden { display: none; }
+#ending-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  width: min(86vw, 320px);
+}
+.ending-heart {
+  font-size: 40px;
+  animation: heart-beat 1.6s ease-in-out infinite;
+}
+@keyframes heart-beat {
+  0%, 100% { transform: scale(1); }
+  12% { transform: scale(1.18); }
+  24% { transform: scale(1); }
+  36% { transform: scale(1.12); }
+}
+#ending h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 4px;
+  color: #ffd98a;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, .45);
+}
+.ending-text {
+  font-size: 12.5px;
+  line-height: 2;
+  color: var(--text);
+  margin: 8px 0 14px;
+}
+#ending .tbtn { width: min(76vw, 240px); }
+
 /* ---------- 開場前言（跑馬燈） ---------- */
 #prologue {
   position: fixed;
