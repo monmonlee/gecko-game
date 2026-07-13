@@ -720,6 +720,24 @@ const BUG_SVGS = {
 </svg>`,
   black_cricket: cricketSVG('#3d3733', '#2a2624', '#241f1c', '#0f0d0c'),
   white_cricket: cricketSVG('#e8dcc8', '#d4c2a2', '#c0ac88', '#241812'),
+  pellets: `
+<svg viewBox="0 0 22 13" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="5"  cy="8"  rx="2.6" ry="2" fill="#8a6a42"/>
+  <ellipse cx="11" cy="6"  rx="2.8" ry="2.1" fill="#9c7a4e"/>
+  <ellipse cx="16.5" cy="8.5" rx="2.6" ry="2" fill="#7d5e3a"/>
+  <ellipse cx="8"  cy="10.5" rx="2.4" ry="1.9" fill="#8f6f46"/>
+  <ellipse cx="14" cy="10.8" rx="2.5" ry="1.9" fill="#86663e"/>
+  <circle cx="10.4" cy="5.4" r=".7" fill="#b99664" opacity=".8"/>
+  <circle cx="4.4" cy="7.4" r=".6" fill="#b99664" opacity=".7"/>
+</svg>`,
+  paste: `
+<svg viewBox="0 0 22 13" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="11" cy="11" rx="9.5" ry="2" fill="rgba(0,0,0,.15)"/>
+  <path d="M3 11 Q3 7 7 6.5 Q6 4 9.5 4 Q10.5 1.5 13 3 Q16 2.5 16 5.5 Q19.5 6 19 9 Q19.5 11 17 11.5 Q11 12.5 5 11.5 Q3 11.5 3 11 Z" fill="#b56a56"/>
+  <path d="M6 7.5 Q9 6 13 6.8 Q16 7.4 17 9" stroke="#9c5343" stroke-width="1" fill="none" opacity=".7"/>
+  <circle cx="8.5" cy="5.8" r=".8" fill="#d18a74" opacity=".9"/>
+  <circle cx="13.5" cy="4.6" r=".7" fill="#d18a74" opacity=".8"/>
+</svg>`,
   roach: `
 <svg viewBox="0 0 24 13" xmlns="http://www.w3.org/2000/svg">
   <g class="wiggle">

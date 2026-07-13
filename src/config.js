@@ -14,8 +14,9 @@ export const CONFIG = {
     guideMinMs: 5000,                 // 至少引導 5 秒才會撲食
     pounceDist: 26,                   // 距離夠近觸發撲食（stage px）
     wormLerp: 0.14,                   // 蟲跟隨手指的緩動係數（預設）
-    bugLerp: {                        // 每種蟲的手感：蟋蟀彈、蟑螂快、麵包蟲慢
+    bugLerp: {                        // 每種食物的手感：蟋蟀彈、蟑螂快、麵包蟲慢、飼料蟲泥不會動
       mealworm: 0.12, black_cricket: 0.2, white_cricket: 0.18, roach: 0.26,
+      pellets: 0.02, paste: 0.015,
     },
     huntSpeed: 42,                    // 追蟲速度 px/s
     pounceSpeed: 240,                 // 撲食衝刺速度
@@ -60,7 +61,7 @@ export const CONFIG = {
   },
 
   poop: {
-    delayMs: [12 * 3600 * 1000, 36 * 3600 * 1000], // 進食後 12–36 小時內產生
+    delayMs: [3 * 3600 * 1000, 5 * 3600 * 1000],   // 進食後 3–5 小時內產生
   },
 
   shed: {
@@ -146,19 +147,28 @@ export const CONFIG = {
     durMs: { yawn: 2500, eyelick: 1800, blep: 6000, wink: 5000, lick_lips: 1600, notice: 4500, camface: 5200 },
   },
 
-  // 蟲蟲圖鑑：每隻守宮出生時隨機決定一種「最愛」，餵到會特別開心
-  // lines = 吃下去之後的專屬食評
+  // 食物圖鑑：連續登入解鎖新食物（unlockStreak）；每隻守宮有一種最愛（四種活蟲之一）
+  // lines = 吃下去之後的專屬食評；guide = 開始餵食時的提示
   bugs: {
     mealworm: {
-      label: '麵包蟲', desc: '軟軟的入門款，守宮界的白飯',
+      label: '麵包蟲', desc: '軟軟的入門款，守宮界的白飯', unlockStreak: 0,
       lines: [
         '「麵包蟲～安心的味道。日常的美好。」',
         '「軟軟的好入口。嗯，今天也是平穩的一天。」',
         '「經典款。不會出錯的選擇，巨人你懂。」',
       ],
     },
+    pellets: {
+      label: '飼料', desc: '顆粒狀的日常主食，咔啦咔啦', unlockStreak: 2,
+      guide: '把飼料倒在牠附近吧',
+      lines: [
+        '「咔啦、咔啦。乾糧日，樸實的味道。」',
+        '「顆粒飼料…乾乾的，等一下要多喝水。」',
+        '「不是蟲，但、但也不錯啦。（咔啦咔啦）」',
+      ],
+    },
     black_cricket: {
-      label: '黑蟋蟀', desc: '彈跳力驚人，追起來最有成就感',
+      label: '黑蟋蟀', desc: '彈跳力驚人，追起來最有成就感', unlockStreak: 3,
       lines: [
         '「抓到了！！黑蟋蟀會跳，但我、更、快！」',
         '「呼…呼…追得累死了，但就是這個嚼勁！」',
@@ -166,7 +176,7 @@ export const CONFIG = {
       ],
     },
     white_cricket: {
-      label: '白蟋蟀', desc: '溫和的蟋蟀，殼薄好消化',
+      label: '白蟋蟀', desc: '溫和的蟋蟀，殼薄好消化', unlockStreak: 5,
       lines: [
         '「白蟋蟀～殼薄薄的，咔滋一下就好了。」',
         '「溫溫柔柔的味道，適合睡前來一隻。」',
@@ -174,11 +184,20 @@ export const CONFIG = {
       ],
     },
     roach: {
-      label: '蟑螂（杜比亞）', desc: '爬得飛快、營養滿分的活力點心',
+      label: '蟑螂（杜比亞）', desc: '爬得飛快、營養滿分的活力點心', unlockStreak: 7,
       lines: [
         '「杜比亞！跑得快，但巨人把它引到我嘴邊了，嘿嘿。」',
         '「肥肥的一隻，大～滿～足～」',
         '「吃完這個，感覺可以繞缸衝十圈！」',
+      ],
+    },
+    paste: {
+      label: '蟲泥', desc: '肉醬狀的蟲蟲精華，用舔的最高級點心', unlockStreak: 10,
+      guide: '把蟲泥抹在牠面前吧',
+      lines: [
+        '「蟲泥！！不用追的蟲蟲精華！舔就好了！」',
+        '「舔舔…舔舔舔…（完全停不下來）」',
+        '「發明這個的人是天才吧。肉醬形態的蟲蟲！」',
       ],
     },
   },

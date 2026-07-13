@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 import { on } from './events.js';
-import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior, diaryLog } from './state.js';
+import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior, diaryLog, checkBugUnlocks } from './state.js';
 import { setMode, drawWorld, poseThumb, setZoom, isZoom, geckoMarkup, exportSVGString, bugSVG } from './render.js';
 import * as sound from './sound.js';
 
@@ -117,23 +117,33 @@ export function init(_brain, _feeder, isNew) {
     const left = gs.timers.lastFedAt + CONFIG.feed.cooldownMs - now;
     if (left > 0) return showToast(`「我還很飽，肚子圓滾滾的～」（${fmt(left)} 後再餵）`);
     $('handmenu').classList.add('hidden');
-    $('bugmenu').classList.toggle('hidden');   // 先選今天吃哪種蟲
+    if ($('bugmenu').classList.contains('hidden')) openBugMenu();
+    else $('bugmenu').classList.add('hidden');
   });
 
-  // 選蟲選單
-  $('bug-list').innerHTML = Object.entries(CONFIG.bugs).map(([id, b]) => `
-    <button class="bug-btn" data-bug="${id}">
-      <span class="bug-icon">${bugSVG(id)}</span>
-      <span class="bug-name">${b.label}</span>
-    </button>`).join('');
+  // 選食物選單（每次打開重建，鎖定狀態才會即時）
+  const openBugMenu = () => {
+    const unlocked = new Set(gs.records.bugsUnlocked || ['mealworm']);
+    $('bug-list').innerHTML = Object.entries(CONFIG.bugs).map(([id, b]) => {
+      const ok = unlocked.has(id);
+      return `
+      <button class="bug-btn ${ok ? '' : 'locked'}" data-bug="${id}" ${ok ? '' : 'disabled'}>
+        <span class="bug-icon">${bugSVG(id)}</span>
+        <span class="bug-name">${ok ? b.label : '？？？'}</span>
+        ${ok ? '' : `<span class="bug-lock">連續 ${b.unlockStreak} 天解鎖</span>`}
+      </button>`;
+    }).join('');
+    $('bugmenu').classList.remove('hidden');
+  };
   $('bug-list').addEventListener('click', e => {
     const btn = e.target.closest('.bug-btn');
-    if (!btn) return;
+    if (!btn || btn.disabled) return;
     $('bugmenu').classList.add('hidden');
     if (!gs.environment.lightOn || feeder.active || handBusy) return;
     setZoom(false);                    // 餵食要看全景
-    feeder.start(Date.now(), btn.dataset.bug);
-    showToast(`🪱 移動手指引導${CONFIG.bugs[btn.dataset.bug].label}——「那是什麼！在動！」`);
+    const bug = btn.dataset.bug;
+    feeder.start(Date.now(), bug);
+    showToast(`🪱 ${CONFIG.bugs[bug].guide || `移動手指引導${CONFIG.bugs[bug].label}——「那是什麼！在動！」`}`);
     refresh();
   });
   $('bug-cancel').addEventListener('click', () => $('bugmenu').classList.add('hidden'));
@@ -966,6 +976,7 @@ function initDebug() {
   mk('換睡姿', () => { brain.nextPoseRotate = Date.now(); });
   mk('大便出現', () => { gs.timers.nextPoopAt = Date.now(); tickWorld(Date.now()); });
   mk('懟臉鏡頭', () => { brain.micro = { id: 'camface', until: Date.now() + 5200 }; document.getElementById('camface').classList.add('show'); setTimeout(() => document.getElementById('camface').classList.remove('show'), 5300); });
+  mk('連簽+1天', () => { gs.timers.streakDays = (gs.timers.streakDays || 0) + 1; showToast(`連簽 ${gs.timers.streakDays} 天`); checkBugUnlocks(); });
   mk('開始脫皮', () => { gs.timers.nextShedAt = Date.now(); gs.timers.shedEndAt = 0; gs.gecko.isShedding = false; tickWorld(Date.now()); });
   mk('完成脫皮', () => { if (gs.gecko.isShedding) { gs.timers.shedEndAt = Date.now(); tickWorld(Date.now()); } });
   mk('老 7 天', () => { gs.timers.createdAt -= 7 * 86400000; });

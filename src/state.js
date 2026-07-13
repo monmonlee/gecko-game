@@ -61,6 +61,7 @@ function defaultState(now, name) {
       firstNightDone: false,          // 第一晚的「保證時刻」演過了沒
       fullTrustShown: false,          // 好感 100 的感謝畫面顯示過了沒
       bugsTried: [],                  // 餵過的蟲種
+      bugsUnlocked: ['mealworm'],     // 已解鎖的食物（連續登入天數解鎖）
       favBugFound: false,             // 找到牠的最愛了沒
     },
   };
@@ -86,7 +87,12 @@ export function initState(now) {
     // 日記改版：舊格式（一天多行）轉成一天一行（取當天最後一句）
     gs.records.diary = (gs.records.diary || []).map(e =>
       e.line !== undefined ? e : { date: e.date, line: (e.lines && e.lines[e.lines.length - 1]) || '', w: 5 });
+    // 食物解鎖改版：餵過的直接視為已解鎖（老玩家不降級）
+    for (const b of gs.records.bugsTried || []) {
+      if (!gs.records.bugsUnlocked.includes(b)) gs.records.bugsUnlocked.push(b);
+    }
     settle(now);
+    checkBugUnlocks(now);
   } else {
     // 取名字交給 ui 的遊戲內視窗（App 內建瀏覽器常會擋 window.prompt）
     gs = defaultState(now, '小肥');
@@ -121,6 +127,20 @@ export function recordWeigh(now) {
   else h.push({ date, grams: gs.gecko.weightGrams });
   save(now);
   return gs.gecko.weightGrams;
+}
+
+// 連續登入解鎖新食物（解鎖後不會因斷簽收回）
+export function checkBugUnlocks(now = Date.now()) {
+  const streak = gs.timers.streakDays || 0;
+  gs.records.bugsUnlocked ??= ['mealworm'];
+  for (const [id, b] of Object.entries(CONFIG.bugs)) {
+    if ((b.unlockStreak || 0) <= streak && !gs.records.bugsUnlocked.includes(id)) {
+      gs.records.bugsUnlocked.push(id);
+      emit('toast', `🎁 連續來看牠 ${streak} 天！解鎖新食物：${b.label}`);
+      emit('sfx', 'fanfare');
+      diaryLog(`聽說因為巨人天天都來，新的食物「${b.label}」要登場了。期待。`, 5, now);
+    }
+  }
 }
 
 // 大便與脫皮的世界時鐘：離線結算與遊戲中共用，冪等
@@ -246,6 +266,7 @@ function settle(now) {
       emit('toast', '💛「三十天，每天都在。這樣的巨人，只有你一個。」');
       diaryLog('連續三十天了。寫下來，不可以忘記。', 8, now);
     }
+    checkBugUnlocks(now);
   }
 }
 
