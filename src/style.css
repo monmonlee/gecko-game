@@ -235,43 +235,19 @@ html, body {
   100% { transform: translate(-14px, -40px); opacity: 0; }
 }
 
-#driftwood {
-  position: absolute;
-  left: 108px; top: 166px;
-  width: 98px; height: 12px;
-  background: #6f4f34;
-  border-radius: 6px;
-  transform: rotate(-4deg);
-  box-shadow: inset 0 -4px 0 #573b25;
-  z-index: 5;
-}
-#driftwood::after {
-  content: "";
-  position: absolute;
-  left: 18px; top: 3px;
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: #573b25;
+/* 家具容器：圖形都在 SVG 裡（render.js 注入），這裡只管位置 */
+#driftwood, #water, #plant, #rock, #mossbox, #heatmat { position: absolute; }
+#driftwood svg, #water svg, #plant svg, #rock svg, #mossbox svg, #heatmat svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-#water {
-  position: absolute;
-  left: 216px; top: 196px;
-  width: 52px; height: 16px;
-  background: #8a94a0;
-  border-radius: 50%;
-  box-shadow: inset 0 3px 0 rgba(255, 255, 255, .25);
-  z-index: 5;
-}
-#water::after {
-  content: "";
-  position: absolute;
-  inset: 3px 5px;
-  background: #7fb7cf;
-  border-radius: 50%;
-  animation: shimmer 3.2s ease-in-out infinite;
-}
-@keyframes shimmer { 50% { filter: brightness(1.14); } }
+#driftwood { left: 102px; top: 158px; width: 104px; height: 30px; z-index: 5; }
+
+#water { left: 214px; top: 192px; width: 56px; height: 22px; z-index: 5; }
+#water .water-surface { animation: shimmer 3.2s ease-in-out infinite; }
+@keyframes shimmer { 50% { filter: brightness(1.16); } }
 
 /* 椰子殼躲窩 */
 #hide {
@@ -302,87 +278,25 @@ html, body {
   box-shadow: 0 -1.5px 0 rgba(255, 235, 200, .14);
 }
 
-/* ---------- 新家具 ---------- */
+/* ---------- 新家具（圖形在 SVG 裡） ---------- */
 #heatmat {
-  position: absolute;
   left: 246px; top: 216px;
   width: 62px; height: 16px;
-  border-radius: 8px;
-  background: #7c4a3a;
-  box-shadow: inset 0 2px 0 rgba(255, 150, 90, .35), 0 0 14px rgba(255, 110, 50, .28);
   z-index: 2;
-}
-#heatmat::after {
-  content: "";
-  position: absolute;
-  inset: 3px 6px;
-  border-radius: 6px;
-  background: repeating-linear-gradient(90deg, #8a5240 0 8px, #7c4a3a 8px 16px);
+  filter: drop-shadow(0 0 8px rgba(255, 110, 50, .35));   /* 保留發熱的暖光 */
 }
 
-#rock {
-  position: absolute;
-  left: 244px; top: 142px;
-  width: 56px; height: 46px;
-  background: #8a8378;
-  border-radius: 18px 26px 6px 6px;
-  box-shadow: inset -10px -8px 0 #6f695f, inset 4px 4px 0 #a29a8d;
-  z-index: 5;
-}
-#rock::after {
-  content: "";
-  position: absolute;
-  left: 9px; top: 13px;
-  width: 7px; height: 5px;
-  border-radius: 50%;
-  background: #6f695f;
-}
+#rock { left: 244px; top: 140px; width: 56px; height: 48px; z-index: 5; }
 
-#plant {
-  position: absolute;
-  left: 84px; top: 116px;
-  width: 40px; height: 72px;
-  z-index: 5;
-}
-#plant::before {              /* 莖 */
-  content: "";
-  position: absolute;
-  left: 18px; bottom: 0;
-  width: 4px; height: 46px;
-  background: #4c6b3c;
-  border-radius: 2px;
-}
-#plant::after {               /* 葉叢：微風輕搖 */
-  content: "";
-  position: absolute;
-  left: 0; top: 0;
-  width: 40px; height: 38px;
-  background: #5d8a48;
-  border-radius: 50% 60% 55% 60%;
-  box-shadow: -6px 10px 0 -4px #4c7440, 10px 12px 0 -6px #6c9c52, 2px 18px 0 -8px #55813f;
-  transform-origin: 20px 60px;
+#plant { left: 82px; top: 112px; width: 40px; height: 76px; z-index: 5; }
+#plant .leaves {                /* 葉叢：微風輕搖 */
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
   animation: sway 5.5s ease-in-out infinite;
 }
-@keyframes sway { 50% { transform: rotate(2.4deg); } }
+@keyframes sway { 50% { transform: rotate(2.2deg); } }
 
-#mossbox {
-  position: absolute;
-  left: 114px; top: 200px;
-  width: 50px; height: 28px;
-  background: #7d6a4f;
-  border-radius: 6px;
-  box-shadow: inset 0 -6px 0 #66563f;
-  z-index: 4;
-}
-#mossbox::after {             /* 苔蘚 */
-  content: "";
-  position: absolute;
-  left: 3px; top: -4px; right: 3px;
-  height: 14px;
-  background: #4e7a3a;
-  border-radius: 8px;
-  box-shadow: inset 0 -3px 0 #3f6330, 6px -2px 0 -3px #5d8a48, -6px -2px 0 -3px #5d8a48;
-}
+#mossbox { left: 112px; top: 198px; width: 52px; height: 30px; z-index: 4; }
 
 /* ---------- 大便與蛻皮 ---------- */
 #poop {
@@ -1136,16 +1050,16 @@ html, body {
 }
 .art-roof .gk { bottom: 18px; }
 /* 地面道具 */
-.art-moss::before {
+.art-moss::before {              /* 苔蘚盒：灰盒子＋滿出來的苔蘚 */
   content: "";
   position: absolute;
   left: 8px; bottom: 0;
-  width: 44px; height: 12px;
-  background: #4e7a3a;
-  border-radius: 8px;
-  box-shadow: inset 0 -3px 0 #3f6330;
+  width: 44px; height: 14px;
+  background: linear-gradient(#5d8a48 0 45%, #aeb6bb 45% 100%);
+  border-radius: 7px 7px 3px 3px;
+  box-shadow: inset 0 -2px 0 #98a1a6;
 }
-.art-moss .gk { bottom: 6px; }
+.art-moss .gk { bottom: 8px; }
 .art-belly::before {
   content: "";
   position: absolute;

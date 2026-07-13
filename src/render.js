@@ -15,8 +15,105 @@ export function initScene() {
   traceEl = document.getElementById('trace');
   geckoEl.innerHTML = geckoMarkup();
   wormEl.innerHTML = wormSVG();
+  // 家具全部用 SVG 畫（跟守宮同一套工法），看得出是什麼東西
+  document.getElementById('water').innerHTML = waterSVG();
+  document.getElementById('driftwood').innerHTML = driftwoodSVG();
+  document.getElementById('plant').innerHTML = plantSVG();
+  document.getElementById('rock').innerHTML = rockSVG();
+  document.getElementById('mossbox').innerHTML = mossboxSVG();
+  document.getElementById('heatmat').innerHTML = heatmatSVG();
   makeNoise();
   makeDust();
+}
+
+// ---- 家具 SVG ----
+function waterSVG() {
+  return `
+<svg viewBox="0 0 56 22" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="28" cy="15.5" rx="27" ry="6" fill="#4a5058"/>
+  <path d="M1 10 Q1 17 10 19.5 Q19 21.5 28 21.5 Q37 21.5 46 19.5 Q55 17 55 10 L55 9 L1 9 Z" fill="#7c848f"/>
+  <ellipse cx="28" cy="9.5" rx="27" ry="7" fill="#98a1ac"/>
+  <ellipse cx="28" cy="10" rx="22.5" ry="5.4" fill="#3f4a56"/>
+  <ellipse class="water-surface" cx="28" cy="10.6" rx="20.5" ry="4.6" fill="#5fa7c7"/>
+  <path d="M13 9.6 Q20 7.6 30 8.4" stroke="#cfeefb" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".85"/>
+  <ellipse cx="37" cy="12" rx="4.5" ry="1.2" fill="#8fd0e8" opacity=".7"/>
+  <circle cx="18" cy="12.5" r=".9" fill="#dff4fd" opacity=".8"/>
+</svg>`;
+}
+
+function driftwoodSVG() {
+  return `
+<svg viewBox="0 0 104 30" xmlns="http://www.w3.org/2000/svg">
+  <path d="M26 16 Q34 6 47 3 L49 7 Q38 10 31 18 Z" fill="#7d5a3c"/>
+  <path d="M47 3 L52 1.5 L53 5 L49 7 Z" fill="#8a6647"/>
+  <path d="M2 20 Q6 15 16 14.5 Q45 12.5 70 13.5 Q90 14 102 17.5 Q103 22 100 25 Q75 22 45 23 Q18 24 4 25 Q1 23 2 20 Z" fill="#6f4f34"/>
+  <path d="M10 18 Q40 16 68 16.5 Q86 17 98 19.5" stroke="#573b25" stroke-width="1.2" fill="none" opacity=".7"/>
+  <path d="M14 22 Q42 20.5 72 21" stroke="#573b25" stroke-width="1" fill="none" opacity=".5"/>
+  <ellipse cx="100.5" cy="21" rx="2.8" ry="4" fill="#8a6647"/>
+  <ellipse cx="100.5" cy="21" rx="1.4" ry="2" fill="#6f4f34"/>
+  <circle cx="33" cy="19" r="2" fill="#573b25"/>
+  <circle cx="33" cy="19" r=".8" fill="#3f2a1b"/>
+  <path d="M12 24 L9 29.5 L14 28.5 L16 24 Z" fill="#5e422c"/>
+  <path d="M78 23 L80 29.5 L85 28.5 L83 23 Z" fill="#5e422c"/>
+</svg>`;
+}
+
+function plantSVG() {
+  return `
+<svg viewBox="0 0 40 76" xmlns="http://www.w3.org/2000/svg">
+  <g class="leaves">
+    <path d="M20 74 C14 56 6 40 8 18 Q9 14 12 17 C18 34 20 52 22 74 Z" fill="#4c7440"/>
+    <path d="M21 74 C22 50 26 34 33 22 Q36 19 36 24 C33 40 27 56 24 74 Z" fill="#55813f"/>
+    <path d="M19 74 C17 48 15 30 19 8 Q21 4 23 8 C26 30 23 52 22 74 Z" fill="#5d8a48"/>
+    <path d="M20 74 C24 60 31 50 37 44 Q39 43 38 47 C33 56 26 66 23 74 Z" fill="#6c9c52"/>
+    <path d="M19 74 C15 62 8 54 3 50 Q1 49 2 53 C6 60 13 68 17 74 Z" fill="#6c9c52"/>
+    <path d="M20.5 70 C19 48 17.5 32 20 12" stroke="#7fb264" stroke-width="1" fill="none" opacity=".8"/>
+  </g>
+  <ellipse cx="20" cy="73" rx="14" ry="4" fill="#5a4630"/>
+  <ellipse cx="20" cy="71.6" rx="14" ry="3" fill="#6b5138"/>
+  <circle cx="13" cy="71.5" r="1" fill="#7d5f42"/>
+  <circle cx="27" cy="72.5" r="1.2" fill="#7d5f42"/>
+</svg>`;
+}
+
+function rockSVG() {
+  return `
+<svg viewBox="0 0 56 48" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="28" cy="45.5" rx="25" ry="3" fill="rgba(0,0,0,.18)"/>
+  <path d="M4 48 L2 26 Q4 14 14 8 Q26 2 40 7 Q52 12 54 24 L54 48 Z" fill="#8a8378"/>
+  <path d="M2 26 Q4 14 14 8 Q26 2 40 7 L36 14 Q22 10 12 18 Q6 22 6 30 Z" fill="#a29a8d"/>
+  <path d="M54 24 Q52 12 40 7 L36 14 Q46 18 48 28 L54 48 L54 24 Z" fill="#6f695f"/>
+  <path d="M20 24 L30 20 L42 26" stroke="#6f695f" stroke-width="1.2" fill="none" opacity=".6"/>
+  <path d="M14 34 L24 31" stroke="#6f695f" stroke-width="1" fill="none" opacity=".5"/>
+  <circle cx="18" cy="14" r="1.2" fill="#b7ae9f"/>
+</svg>`;
+}
+
+function mossboxSVG() {
+  return `
+<svg viewBox="0 0 52 30" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="14" cy="11" r="6" fill="#4e7a3a"/>
+  <circle cx="24" cy="8" r="7" fill="#5d8a48"/>
+  <circle cx="36" cy="10" r="6.5" fill="#55813f"/>
+  <circle cx="45" cy="13" r="4.5" fill="#4c7440"/>
+  <circle cx="7" cy="14" r="4" fill="#456d35"/>
+  <path d="M2 14 L50 14 L48 29 L4 29 Z" fill="#aeb6bb"/>
+  <rect x="1" y="12" width="50" height="4" rx="2" fill="#c6cdd1"/>
+  <path d="M10 17 L9 27 M42 17 L43 27" stroke="#98a1a6" stroke-width="1" opacity=".6"/>
+  <circle cx="18" cy="14" r="3.5" fill="#5d8a48"/>
+  <circle cx="31" cy="13.5" r="4" fill="#4e7a3a"/>
+</svg>`;
+}
+
+function heatmatSVG() {
+  return `
+<svg viewBox="0 0 62 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="1" y="3" width="56" height="12" rx="6" fill="#7c4a3a"/>
+  <rect x="4" y="5.5" width="50" height="7" rx="3.5" fill="none" stroke="#a05a42" stroke-width="1.6"/>
+  <rect x="8" y="8" width="42" height="2.4" rx="1.2" fill="#8a5240"/>
+  <path d="M57 9 Q61 9 61 5" stroke="#4a2f26" stroke-width="1.6" fill="none"/>
+  <circle cx="61" cy="4" r="1.3" fill="#4a2f26"/>
+</svg>`;
 }
 
 // 守宮的完整 SVG 組（側面＋所有專屬睡姿）——主畫面與拍立得共用
