@@ -249,33 +249,23 @@ html, body {
 #water .water-surface { animation: shimmer 3.2s ease-in-out infinite; }
 @keyframes shimmer { 50% { filter: brightness(1.16); } }
 
-/* 椰子殼躲窩 */
+/* 椰子殼躲避屋：圖形在 SVG 裡，洞口是真的挖空 */
 #hide {
   position: absolute;
   left: 28px; top: 172px;
   width: 68px; height: 34px;
-  background: radial-gradient(ellipse 105% 135% at 35% -10%, #7d5a3e 0%, #6b4a33 52%, #503722 100%);
-  border-radius: 32px 34px 5px 5px;
-  box-shadow: inset -8px -6px 0 rgba(0, 0, 0, .2), inset 5px 5px 0 rgba(255, 235, 200, .09);
-  z-index: 30;                /* 蓋在守宮上面，躲進去只露尾巴 */
+  z-index: 30;                /* 殼蓋在守宮上面 */
 }
-#hide::before {               /* 椰殼纖維紋理 */
-  content: "";
+#hide svg { display: block; width: 100%; height: 100%; }
+
+/* 屋內的黑暗：墊在守宮後面，尾巴留在洞口時才襯得出來 */
+#hide-interior {
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    repeating-linear-gradient(78deg, rgba(0, 0, 0, .13) 0 2px, transparent 2px 6px),
-    repeating-linear-gradient(101deg, rgba(255, 220, 170, .06) 0 1px, transparent 1px 7px);
-}
-#hide::after {                /* 入口：深到看不見底 */
-  content: "";
-  position: absolute;
-  right: 6px; bottom: 0;
-  width: 20px; height: 16px;
-  background: radial-gradient(ellipse at 50% 100%, #070403 55%, #241812 100%);
-  border-radius: 10px 10px 0 0;
-  box-shadow: 0 -1.5px 0 rgba(255, 235, 200, .14);
+  left: 56px; top: 184px;
+  width: 36px; height: 22px;
+  z-index: 15;                /* 守宮(20)之下、地面之上 */
+  background: radial-gradient(ellipse at 60% 100%, #070403 55%, #241812 100%);
+  border-radius: 12px 12px 0 0;
 }
 
 /* ---------- 新家具（圖形在 SVG 裡） ---------- */

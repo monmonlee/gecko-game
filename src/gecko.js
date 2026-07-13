@@ -10,8 +10,9 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const randMs = span => rand(span[0], span[1]);
 const pick = arr => arr[(Math.random() * arr.length) | 0];
 
-const HIDE = CONFIG.locations.hide;      // 窩內位置（尾巴會露出窩外）
-const HIDE_PEEK_X = HIDE.x + 36;         // 探頭時頭從洞口伸出
+const HIDE = CONFIG.locations.hide;      // 躲避屋的邏輯位置
+const HIDE_IN = { x: 62, y: 202 };       // 屋內實際趴的位置：頭朝內、尾巴剛好留在洞口
+const HIDE_PEEK_X = 80;                  // 探頭時頭從洞口伸出
 const HIDE_DOOR = { x: 106, y: 204 };    // 洞口外的落點：進窩要先走到門口再鑽進去
 
 // 真實世界作息：晚上才是牠的時間
@@ -47,7 +48,8 @@ export class Brain {
       gs.gecko.currentActivity = 'sleeping';
     }
     if (gs.gecko.currentActivity === 'hiding') {
-      this.x = HIDE.x; this.y = HIDE.y;
+      this.x = HIDE_IN.x; this.y = HIDE_IN.y;
+      this.facing = -1;                // 頭朝屋內、尾巴朝洞口
       this.sub = 'in';
       this.peek = this.tier() === 'wary';
       this.timer = rand(4, 10);
@@ -330,17 +332,27 @@ export class Brain {
         gs.gecko.locationId = 'hide';
         this.sub = 'in';
         this.timer = rand(4, 10);
-        this.x = HIDE.x; this.y = HIDE.y;
-        this.facing = 1;               // 頭朝窩內，尾巴露在外面
+        this.x = HIDE_IN.x; this.y = HIDE_IN.y;
+        this.facing = -1;              // 頭朝屋內，尾巴留在洞口
       }
     } else if (this.sub === 'in') {
       if (this.peek) {                 // 警戒級：偶爾探頭
         this.timer -= dt;
-        if (this.timer <= 0) { this.sub = 'peek'; this.timer = rand(1.2, 2.2); this.x = HIDE_PEEK_X; }
+        if (this.timer <= 0) {
+          this.sub = 'peek';
+          this.timer = rand(1.2, 2.2);
+          this.x = HIDE_PEEK_X;
+          this.facing = 1;             // 轉過身，頭從洞口探出來
+        }
       }
     } else if (this.sub === 'peek') {
       this.timer -= dt;
-      if (this.timer <= 0) { this.sub = 'in'; this.timer = rand(5, 14); this.x = HIDE.x; }
+      if (this.timer <= 0) {
+        this.sub = 'in';
+        this.timer = rand(5, 14);
+        this.x = HIDE_IN.x;
+        this.facing = -1;
+      }
     }
   }
 

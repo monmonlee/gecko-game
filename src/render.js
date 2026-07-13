@@ -22,6 +22,7 @@ export function initScene() {
   document.getElementById('rock').innerHTML = rockSVG();
   document.getElementById('mossbox').innerHTML = mossboxSVG();
   document.getElementById('heatmat').innerHTML = heatmatSVG();
+  document.getElementById('hide').innerHTML = hideSVG();
   makeNoise();
   makeDust();
 }
@@ -102,6 +103,34 @@ function mossboxSVG() {
   <path d="M10 17 L9 27 M42 17 L43 27" stroke="#98a1a6" stroke-width="1" opacity=".6"/>
   <circle cx="18" cy="14" r="3.5" fill="#5d8a48"/>
   <circle cx="31" cy="13.5" r="4" fill="#4e7a3a"/>
+</svg>`;
+}
+
+// 躲避屋：洞口是「真的洞」（遮罩挖空），守宮的尾巴才能襯著黑洞露出來
+function hideSVG() {
+  return `
+<svg viewBox="0 0 68 34" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="hide-g" cx="35%" cy="-10%" r="130%">
+      <stop offset="0%" stop-color="#7d5a3e"/>
+      <stop offset="52%" stop-color="#6b4a33"/>
+      <stop offset="100%" stop-color="#503722"/>
+    </radialGradient>
+    <mask id="hide-m">
+      <rect width="68" height="34" fill="#fff"/>
+      <path d="M44 34 L44 23 Q44 15 52 15 Q60 15 60 23 L60 34 Z" fill="#000"/>
+    </mask>
+  </defs>
+  <g mask="url(#hide-m)">
+    <path d="M0 34 Q0 6 34 4 Q68 6 68 34 Z" fill="url(#hide-g)"/>
+    <path d="M8 30 Q14 12 30 7" stroke="rgba(0,0,0,.15)" stroke-width="2" fill="none"/>
+    <path d="M20 32 Q26 14 44 8" stroke="rgba(0,0,0,.12)" stroke-width="2" fill="none"/>
+    <path d="M36 32 Q44 18 58 14" stroke="rgba(0,0,0,.12)" stroke-width="2" fill="none"/>
+    <path d="M12 26 Q22 10 40 6" stroke="rgba(255,220,170,.09)" stroke-width="1.4" fill="none"/>
+    <path d="M28 30 Q38 16 54 11" stroke="rgba(255,220,170,.07)" stroke-width="1.4" fill="none"/>
+  </g>
+  <path d="M44 33 L44 23 Q44 15 52 15 Q60 15 60 23 L60 33"
+        stroke="rgba(255,235,200,.22)" stroke-width="1.6" fill="none"/>
 </svg>`;
 }
 
@@ -187,6 +216,7 @@ export function drawWorld() {
 const POSE_OFF = {
   roof:      { dx: 4,   dy: -30 },
   halfout:   { dx: 40,  dy: 0 },   // 上半身探出窩外
+  hide_tail: { dx: 18,  dy: 2 },   // 頭朝屋內，尾巴留在洞口
   soak:      { dx: 16,  dy: 4 },
   glass:     { dx: -6,  dy: 2 },
   headstand: { dx: -4,  dy: 2 },
@@ -238,8 +268,10 @@ export function drawGecko(b) {
   if (tier && (act === 'active' || act === 'frozen')) cls.push('mood-low');   // 陌生／警戒期的冷淡眼神
   cls.push('stage-' + g.stage);       // 幼體色調對比較高
   geckoEl.className = cls.join(' ');
-  // 半身出窩一定頭朝外（窩口在右邊）
-  const face = act === 'sleeping' && g.sleepPoseId === 'halfout' ? 1 : b.facing;
+  // 窩系睡姿的方向固定：半身出窩頭朝外、窩裡露尾頭朝內（洞口在右邊）
+  const face = act === 'sleeping' && g.sleepPoseId === 'halfout' ? 1
+             : act === 'sleeping' && g.sleepPoseId === 'hide_tail' ? -1
+             : b.facing;
   const sz = SIZE[g.stage] ?? 1;      // 幼體小小一隻，養大才變大
   // 轉身時輕輕「壓扁→彈開」，不會瞬間翻面
   if (face !== lastFace) { lastFace = face; turnAt = performance.now(); }
