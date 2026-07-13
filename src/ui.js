@@ -88,9 +88,16 @@ export function init(_brain, _feeder, isNew) {
     if (env.poopPresent) {
       env.poopPresent = false;
       addAffinity(CONFIG.affinity.poop, '幫我打掃');
-      showToast('🗜️「便便被收走了！我的家又乾乾淨淨～我可是很健康的守宮！」');
+      showToast(pickOne([
+        '🗜️「便便被收走了！我的家又乾乾淨淨～我可是很健康的守宮！」',
+        '🗜️「謝謝打掃！乾淨的缸，最棒了」',
+        '🗜️「你收走的樣子很熟練嘛。嗯，可以繼續當我的巨人。」',
+      ]));
       sound.sfx('click');
-      diaryLog('傑作被巨人收走了。家裡乾乾淨淨，舒服。');
+      diaryLog(pickOne([
+        '傑作被巨人收走了。家裡乾乾淨淨，舒服。',
+        '巨人把便便收走了。他好像不覺得臭。真是個怪人。',
+      ]));
     } else if (env.shedSkinPresent) {
       env.shedSkinPresent = false;
       gs.records.shedsCollected = (gs.records.shedsCollected || 0) + 1;
@@ -419,16 +426,32 @@ function startPetting() {
       handEl().classList.add('petting');
       brain.petHappy();
       addAffinity(CONFIG.affinity.pet, '摸摸');
-      showToast('🥰「唔嗯…摸摸的感覺…好像、還不錯…」');
+      showToast(pickOne([
+        '🥰「唔嗯…摸摸的感覺…好像、還不錯…」',
+        '🥰「就、就只是讓你摸一下而已，不要誤會…」',
+        '🥰「頭的地方…對，就是那裡…」',
+        '🥰（眼睛瞇成一條線，整隻放軟）',
+      ]));
       sound.sfx('success');
-      diaryLog('被大手摸了摸頭。…其實沒有很討厭。');
+      diaryLog(pickOne([
+        '被大手摸了摸頭。…其實沒有很討厭。',
+        '又被摸頭了。這次我沒有躲。進步吧？',
+        '大手摸起來，暖暖的。只記錄事實。',
+      ]));
       setTimeout(hideHand, CONFIG.pet.happyMs);
     } else {
       brain.petDodge();
       addAffinity(CONFIG.affinity.petFail, '被嚇到了');
-      showToast('💨「哇！不要突然摸我啦！嚇死我了！」');
+      showToast(pickOne([
+        '💨「哇！不要突然摸我啦！嚇死我了！」',
+        '💨「太快了太快了！要摸也先打聲招呼啦！」',
+        '💨（咻地一下閃開，心臟怦怦跳）',
+      ]));
       sound.sfx('fail');
-      diaryLog('突然有一隻大手伸過來！嚇死我了！');
+      diaryLog(pickOne([
+        '突然有一隻大手伸過來！嚇死我了！',
+        '今天差點被大手抓到（並沒有，但很危險）。',
+      ]));
       setTimeout(hideHand, 500);
     }
   }, CONFIG.pet.judgeDelayMs);
@@ -691,6 +714,70 @@ export function refresh() {
 }
 
 // 狀態列＝牠的內心小劇場
+// cyc：同一狀態下每幾秒輪播一句（穩定不閃爍）；pickOne：一次性事件隨機挑一句
+const cyc = (pool, period = 9000) => pool[Math.floor(Date.now() / period) % pool.length];
+const pickOne = pool => pool[(Math.random() * pool.length) | 0];
+
+const SLEEP_LOW = [                    // 陌生／警戒期：睡得淺
+  '😴「Zzz……」',
+  '😴「呼…呼…」（睡得很淺，尾巴警戒地捲著）',
+  '😴「Zzz…」（耳朵…沒有耳朵，但牠還是很警覺）',
+];
+const SLEEP_HIGH = [                   // 熟悉／信任期：睡得香
+  '😴「Zzz……」（睡得好熟）',
+  '😴「呼……」（肚皮慢慢地一起一伏）',
+  '😴「Zzz…蟲蟲…再一隻…」（說夢話）',
+  '😴（睡相很安心，尾巴鬆鬆地攤著）',
+];
+const FROZEN_LINES = [
+  '❗「不要動…只要不動，就不會被發現…」',
+  '❗（整隻石化，只有喉嚨微微在動）',
+  '❗「看不到我看不到我看不到我」',
+];
+const HIDEIN_LINES = [
+  '🕳️「我才不要出去呢。哼。」',
+  '🕳️「這裡最安全。誰都找不到我。」',
+  '🕳️（縮成一團，只露出一截尾巴尖）',
+];
+const PEEK_LINES = [
+  '🫣「…你還在嗎？（偷偷探頭）」',
+  '🫣「走了沒…啊，還在。」（又縮回去）',
+  '🫣（探出半顆頭，跟你對到眼，僵住）',
+];
+const CHASE_LINES = [
+  '🎯「蟲蟲…蟲蟲…站住…」',
+  '🎯（尾巴尖慢慢搖起來——狩獵開關打開了）',
+  '🎯「不要跑…不要跑嘛…」',
+];
+const ACTIVE_LINES = {
+  stranger: [
+    '🐾（小心翼翼地移動，隨時準備逃走）',
+    '🐾「這裡…到底安不安全…」',
+    '🐾（緊貼著邊邊走，避開空曠的地方）',
+  ],
+  wary: [
+    '🐾「那個巨人…沒有跟過來吧…」',
+    '🐾（邊走邊回頭看你的方向）',
+    '🐾「快速通過…快速通過…」',
+  ],
+  familiar: [
+    '🐾「巡邏巡邏～」',
+    '🐾「今天的缸，跟昨天一樣。很好。」',
+    '🐾（慢悠悠地散步，尾巴晃啊晃）',
+  ],
+  trust: [
+    '🐾「巡邏巡邏～這裡都是我的地盤」',
+    '🐾「你看，我走路的樣子，帥嗎？」',
+    '🐾（在你面前大搖大擺地走）',
+    '🐾「待會兒要做什麼呢～先走一圈再說」',
+  ],
+};
+const DRINK_LINES = [
+  '💧「咕嚕咕嚕…水好好喝」',
+  '💧「喝水水…」（小舌頭一舔一舔）',
+  '💧（安靜地喝水，喉嚨小小地動）',
+];
+
 const MICRO_LINES = {
   yawn:      '🥱「哈啊——嗯…」',
   eyelick:   '👅「眼睛擦一擦…」（守宮用舌頭清潔眼睛！）',
@@ -709,15 +796,18 @@ function statusText() {
   }
   const shed = g.isShedding ? '（脫皮中，白白的）' : '';
   const loc = CONFIG.locations[g.locationId]?.label ?? '';
+  const tierId = tierOf(g.affinity).id;
+  const low = tierId === 'stranger' || tierId === 'wary';
   switch (g.currentActivity) {
-    case 'sleeping': return `😴「Zzz……」${CONFIG.poses[g.sleepPoseId]?.label ?? '睡覺'}・${loc}${shed}`;
-    case 'frozen':   return '❗「不要動…只要不動，就不會被發現…」';
-    case 'hiding':   return brain.sub === 'peek' ? '🫣「…你還在嗎？（偷偷探頭）」' : '🕳️「我才不要出去呢。哼。」';
+    case 'sleeping':
+      return `${cyc(low ? SLEEP_LOW : SLEEP_HIGH)}　${CONFIG.poses[g.sleepPoseId]?.label ?? '睡覺'}・${loc}${shed}`;
+    case 'frozen':   return cyc(FROZEN_LINES, 4000);
+    case 'hiding':   return brain.sub === 'peek' ? cyc(PEEK_LINES, 6000) : cyc(HIDEIN_LINES);
     case 'hunting':  return brain.sub === 'pounce' ? '💨「就是現在——！」'
                           : brain.sub === 'crouch' ? '🐾「壓低…屏住呼吸…」'
-                          : '🎯「蟲蟲…蟲蟲…站住…」';
+                          : cyc(CHASE_LINES, 5000);
     case 'active':   return {
-      drink:   '💧「咕嚕咕嚕…水好好喝」',
+      drink:   cyc(DRINK_LINES, 5000),
       rest:    '🪑「就…坐一下。發個呆。」',
       lookout: '🔭「（前腳撐高高）外面的世界…看起來好大」',
       stretch: '🙆「嗯——伸個懶腰——」',
@@ -728,7 +818,7 @@ function statusText() {
       surf:    '🧗「放我出去！我要出去玩！（扒玻璃）」',
       beg_go:  '🥺「肚子好餓…去玻璃那邊等等看…」',
       beg:     '🥺「巨人…你那裡，有蟲蟲嗎？」',
-    }[brain.sub] ?? `🐾「巡邏巡邏～這裡都是我的地盤」${shed}`;
+    }[brain.sub] ?? `${cyc(ACTIVE_LINES[tierId])}${shed}`;
     case 'petted':   return {
       wait:    '🤚「！？那隻大手要幹嘛…」',
       happy:   '🥰「唔嗯…再摸一下下也可以…」',

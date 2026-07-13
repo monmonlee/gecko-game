@@ -141,7 +141,11 @@ export class Brain {
     gs.environment.viewMode = 'normal';
     if (this.act === 'hunting' || this.act === 'petted') return;
     if (this.act === 'sleeping' && this.tier() === 'trust') {
-      emit('toast', '「好亮…是你呀。嗯，那沒事，我翻個身繼續睡～」');
+      emit('toast', pick([
+        '「好亮…是你呀。嗯，那沒事，我翻個身繼續睡～」',
+        '「是你回來了嗎…看到了…Zzz」',
+        '「燈亮了…今天也有蟲蟲嗎？…先睡飽再說…」',
+      ]));
       return;                          // 信任級：開燈照睡
     }
     this.set('frozen');
@@ -389,11 +393,21 @@ export class Brain {
     gs.gecko.weightGrams = computeWeight();
     gs.timers.nextPoopAt = now + randMs(CONFIG.poop.delayMs);   // 吃飽了，之後某個時刻會「嗯嗯」
     addAffinity(CONFIG.affinity.feed, '餵我吃蟲蟲');
-    emit('toast', '「嗷嗚！！蟲蟲！好吃！！尾巴又可以變胖了嘿嘿」');
+    emit('toast', pick([
+      '「嗷嗚！！蟲蟲！好吃！！尾巴又可以變胖了嘿嘿」',
+      '「一口！蟲蟲就是要一口吞！」',
+      '「唔嗯～～蟲蟲的味道，就是幸福的味道」',
+      '「好吃！…還有嗎？沒有了嗎。好吧，下次見。」',
+    ]));
     emit('sfx', 'eat');
     this.micro = { id: 'lick_lips', until: now + CONFIG.micro.durMs.lick_lips };
     unlockBehavior('lick_lips');
-    diaryLog('抓到蟲蟲吃掉了！尾巴應該又胖了一點，很滿意。', now);
+    diaryLog(pick([
+      '抓到蟲蟲吃掉了！尾巴應該又胖了一點，很滿意。',
+      '今天的蟲蟲很好吃。尾巴的收藏＋1。',
+      '吃到蟲蟲了。是巨人給的。……有記住。',
+      '蟲蟲逃得很努力，但我更努力。',
+    ]), now);
     s.onCaught();
     // 吃完後回到對應好感度的反應
     const t = this.tier();

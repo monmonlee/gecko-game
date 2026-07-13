@@ -6,6 +6,7 @@ export let gs = null;
 const DAY = 86400000;
 const rand = (a, b) => a + Math.random() * (b - a);
 const randMs = span => rand(span[0], span[1]);
+const pick = arr => arr[(Math.random() * arr.length) | 0];
 
 function defaultState(now, name) {
   return {
@@ -125,8 +126,15 @@ export function tickWorld(now) {
     env.poopX = Math.round(60 + Math.random() * 220);
     t.lastPoopAt = t.nextPoopAt;
     t.nextPoopAt = 0;
-    emit('toast', '💩「嗯…嗯——好了✨（消化很順利唷）」');
-    diaryLog('在缸裡留下了一坨傑作。我很健康。', now);
+    emit('toast', pick([
+      '💩「嗯…嗯——好了✨（消化很順利唷）」',
+      '💩「呼。今天的大事，完成。」',
+      '💩「那個就…麻煩你了。（撇頭）」',
+    ]));
+    diaryLog(pick([
+      '在缸裡留下了一坨傑作。我很健康。',
+      '嗯嗯很順利。健康的證明，放在缸裡給巨人看。',
+    ]), now);
   }
 
   if (!t.nextShedAt) t.nextShedAt = now + randMs(CONFIG.shed.intervalMs);
@@ -201,7 +209,11 @@ function settle(now) {
     gs.environment.lightOn = false;
     gs.environment.viewMode = 'nightvision';
     gs.gecko.currentActivity = 'sleeping';
-    emit('toast', '🥽「哈啊…嗯？好像有誰在看我…算了，繼續睡…」');
+    emit('toast', pick([
+      '🥽「哈啊…嗯？好像有誰在看我…算了，繼續睡…」',
+      '🥽（牠翻了個身，完全不知道你回來了）',
+      '🥽「唔…現在是…幾點…Zzz」',
+    ]));
     if (gs.gecko.hunger <= 40) emit('toast', '「肚子咕嚕咕嚕的…好想吃蟲蟲…」');
     if (gs.environment.poopPresent) emit('toast', '「那邊有一坨我的傑作，麻煩你了嘿嘿」');
     if (gs.environment.shedSkinPresent) emit('toast', '「我脫皮了！舊的皮皮留在缸裡送你」');
@@ -214,7 +226,12 @@ function settle(now) {
     t.streakDays = t.lastCheckinDay === yesterday ? (t.streakDays || 0) + 1 : 1;
     t.lastCheckinDay = day;
     addAffinity(CONFIG.affinity.checkin, '今天也來看我');
-    diaryLog(`巨人今天也來看我了。我在${CONFIG.locations[gs.gecko.locationId]?.label ?? '缸裡'}睡覺。`, now);
+    const locLabel = CONFIG.locations[gs.gecko.locationId]?.label ?? '缸裡';
+    diaryLog(pick([
+      `巨人今天也來看我了。我在${locLabel}睡覺。`,
+      `今天巨人也出現了。我在${locLabel}，假裝沒注意到他。`,
+      `巨人來的時候，我正好在${locLabel}。他看了我一陣子。`,
+    ]), now);
     if (t.streakDays === 7) {
       emit('toast', '💛「那個巨人，已經連續七天來看我了。……我有在數。」');
       diaryLog('巨人連續七天都來了。這件事我有偷偷在數。', now);
