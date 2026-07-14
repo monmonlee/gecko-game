@@ -2,6 +2,7 @@ import { CONFIG } from './config.js';
 import { on } from './events.js';
 import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior, diaryLog, checkBugUnlocks } from './state.js';
 import { setMode, drawWorld, poseThumb, setZoom, isZoom, geckoMarkup, exportSVGString, bugSVG, petHandSVG, palmHandSVG } from './render.js';
+import { drawFortune } from './oracle.js';
 import * as sound from './sound.js';
 
 let brain, feeder;
@@ -295,6 +296,8 @@ export function init(_brain, _feeder, isNew) {
   });
 
   // 相簿
+  $('btn-oracle').addEventListener('click', openOracle);
+
   $('btn-album').addEventListener('click', openAlbum);
   $('album-close').addEventListener('click', () => $('album').classList.add('hidden'));
   $('album').addEventListener('click', e => {
@@ -463,15 +466,26 @@ function tickCompanionship() {
 // ---- 摸摸流程 ----
 const handEl = () => $('hand');
 
+// 手圖的水平錨點：把「碰到牠的那個點」對到 x
+const handAnchor = kind => (kind === 'palm' ? 34 : 30);
+
 function showHand(kind, x, y) {
   const h = handEl();
-  h.innerHTML = kind === 'palm' ? palmHandSVG() : petHandSVG();
+  if (kind === 'palm') {
+    h.innerHTML = palmHandSVG();
+  } else {
+    // 摸摸的手用玩家畫的像素圖；載不到就退回程式畫的 SVG 手
+    h.innerHTML = '';
+    const img = new Image();
+    img.className = 'hand-img';
+    img.onerror = () => { h.innerHTML = petHandSVG(); };
+    img.src = './hand.png';
+    h.appendChild(img);
+  }
   h.dataset.kind = kind;
   h.style.display = 'block';
   h.style.transition = 'none';
-  // palm 圖比較寬，錨點對到掌心中央
-  const ax = kind === 'palm' ? 34 : 22;
-  h.style.transform = `translate(${x - ax}px, ${y}px)`;
+  h.style.transform = `translate(${x - handAnchor(kind)}px, ${y}px)`;
 }
 
 // 摸摸成功時：手心處冒出幾顆愛心飄上去
@@ -491,7 +505,7 @@ function petHearts(x, y) {
 
 function moveHand(x, y) {
   const h = handEl();
-  const ax = h.dataset.kind === 'palm' ? 34 : 22;
+  const ax = handAnchor(h.dataset.kind);
   // 兩次 rAF：先讓起始位置生效，再開啟過渡動畫
   requestAnimationFrame(() => requestAnimationFrame(() => {
     h.style.transition = 'transform .8s ease';
@@ -589,6 +603,53 @@ function startPalm() {
       setTimeout(hideHand, 1200);
     }
   }, CONFIG.pet.palmWaitMs);
+}
+
+// ---- 問小波：按鈕抽籤（好感達門檻才開）----
+function openOracle() {
+  const g = gs.gecko;
+  const need = CONFIG.oracle.minAffinity;
+  if (g.affinity < need) {
+    sound.sfx('fail');
+    return showToast(`🔮 好感度 ${need} 以上，小波才願意告訴你牠的直覺唷（現在 ${Math.round(g.affinity)}）`);
+  }
+  sound.sfx('click');
+  $('modal-box').innerHTML = `
+    <h3>🔮 問小波</h3>
+    <div class="modal-note">在心裡，悄悄想一件事……<br>然後湊近牠，聽牠說一句夢話。</div>
+    <div id="oracle-card" class="oracle-card">
+      <div id="oracle-line" class="oracle-line">「……」</div>
+      <div id="oracle-luck" class="oracle-luck"></div>
+    </div>
+    <button id="oracle-draw" class="oracle-btn">湊近問牠 🔮</button>`;
+  $('modal').classList.remove('hidden', 'locked');
+  const card = $('oracle-card'), lineEl = $('oracle-line'), luckEl = $('oracle-luck'), btn = $('oracle-draw');
+
+  const doDraw = () => {
+    gs.records.oracleRecent ??= [];
+    const f = drawFortune(gs.records.oracleRecent);
+    gs.records.oracleRecent.push(f.line);
+    if (gs.records.oracleRecent.length > 14) gs.records.oracleRecent.shift();
+    save(Date.now());
+    sound.sfx('unlock');
+    // 揭曉：先抖一下「……」再淡入
+    card.classList.remove('revealed');
+    lineEl.textContent = '「……」';
+    luckEl.innerHTML = '';
+    btn.disabled = true;
+    setTimeout(() => {
+      lineEl.textContent = `「${f.line}」`;
+      luckEl.innerHTML =
+        `<div class="luck-title">— 小波的今日直覺 —</div>` +
+        `<div class="luck-row"><span class="luck-k">幸運數字</span><span class="luck-v">${f.number}</span></div>` +
+        `<div class="luck-row"><span class="luck-k">幸運顏色</span><span class="luck-v"><i class="luck-dot" style="background:${f.color.hex}"></i>${f.color.name}</span></div>` +
+        `<div class="luck-tip">「我覺得今天…${f.tip}，應該很好。」</div>`;
+      card.classList.add('revealed');
+      btn.disabled = false;
+      btn.textContent = '再問一次 🔮';
+    }, 460);
+  };
+  btn.addEventListener('click', doDraw);
 }
 
 // ---- 圖鑑分頁 ----
@@ -835,6 +896,8 @@ export function refresh() {
   $('clamp-sub').textContent = env.poopPresent ? '有便便!' : env.shedSkinPresent ? '有蛻皮!' : '';
   $('btn-hand').disabled = !env.lightOn || feeder.active || handBusy;
   $('btn-scale').disabled = !env.lightOn || handBusy;
+  // 問小波：好感沒到門檻先鎖著（按了會提示，不是藏起來）
+  $('btn-oracle').classList.toggle('locked', g.affinity < CONFIG.oracle.minAffinity);
 }
 
 // 狀態列＝牠的內心小劇場

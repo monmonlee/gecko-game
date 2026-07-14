@@ -39,12 +39,26 @@ render.setMode(gs.environment);
     render.setMode(gs.environment);
     const kind = qp.get('hand');
     const h = document.getElementById('hand');
-    h.innerHTML = kind === 'palm' ? render.palmHandSVG() : render.petHandSVG();
+    if (kind === 'palm') { h.innerHTML = render.palmHandSVG(); }
+    else { h.innerHTML = `<img class="hand-img" src="./hand.png" alt="">`; }
     h.dataset.kind = kind;
     h.style.display = 'block';
-    const ax = kind === 'palm' ? 34 : 22;
+    const ax = kind === 'palm' ? 34 : 30;
     h.style.transform = `translate(${brain.x - ax}px, ${brain.y - 54}px)`;
     if (kind === 'pet') h.classList.add('petting');
+  }
+  if (qp.get('oracle')) {
+    document.getElementById('title').classList.add('hidden');
+    document.getElementById('prologue').classList.add('hidden');
+    gs.gecko.affinity = 88;
+    gs.records.fullTrustShown = true;
+    gs.environment.lightOn = true;
+    render.setMode(gs.environment);
+    ui.refresh();
+    setTimeout(() => {
+      document.getElementById('btn-oracle').click();
+      setTimeout(() => document.getElementById('oracle-draw').click(), 60);
+    }, 60);
   }
   if (qp.get('walkto')) {
     document.getElementById('title').classList.add('hidden');

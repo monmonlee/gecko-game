@@ -85,6 +85,9 @@ export const CONFIG = {
   // 真實步調參考值：subadult 60、adult 180。
   growth: { subadultDay: 3, adultDay: 7 },
 
+  // 問小波（抽籤）：好感度到門檻牠才願意說牠的直覺
+  oracle: { minAffinity: 80 },
+
   locations: {
     hide:      { x: 44,  y: 200, label: '躲避屋' },
     plant:     { x: 103, y: 198, label: '植物下' },

@@ -634,16 +634,24 @@ html, body {
 #hand[data-kind="pet"] svg.hand-svg  { width: 42px; }
 #hand[data-kind="palm"] svg.hand-svg { width: 54px; }
 
-/* 摸摸時：食指輕輕上下撫摸 */
+/* 玩家畫的像素手（摸摸用）：保留像素邊緣 */
+#hand .hand-img {
+  display: block;
+  width: 60px; height: auto;
+  image-rendering: pixelated;
+}
+
+/* 摸摸時：像素手輕輕下壓撫摸 */
+#hand.petting .hand-img { animation: hand-press .62s ease-in-out infinite; transform-origin: 50% 0; }
+@keyframes hand-press { 50% { transform: translateY(4px) scaleY(.97); } }
+
+/* 摸摸時：SVG 手（fallback）食指輕輕上下撫摸 */
 .hand-finger { transform-box: fill-box; transform-origin: 50% 0; }
 #hand.petting .hand-finger { animation: finger-stroke .6s ease-in-out infinite; }
 @keyframes finger-stroke {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50%      { transform: translateY(3px) rotate(-4deg); }
 }
-/* 整隻手也跟著輕輕點頭，撫摸的律動 */
-#hand.petting { animation: hand-bob .6s ease-in-out infinite; }
-@keyframes hand-bob { 50% { margin-top: 2px; } }
 
 /* 摸摸成功飄出的愛心 */
 .pet-heart {
@@ -951,6 +959,57 @@ html, body {
   padding: 26px 12px;
 }
 .modal-note { font-size: 10px; color: var(--text-dim); margin-top: 8px; line-height: 1.6; }
+
+/* ---------- 問小波：抽籤卡 ---------- */
+#btn-oracle.locked { opacity: .45; }
+.oracle-card {
+  margin: 12px 0 4px;
+  padding: 16px 14px;
+  background: #1c1812;
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  min-height: 58px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.oracle-line {
+  font-size: 14px;
+  line-height: 1.75;
+  color: #f0e4cc;
+  letter-spacing: .3px;
+}
+.oracle-card.revealed .oracle-line { animation: oracle-in .5s ease-out; }
+.oracle-card.revealed .oracle-luck { animation: oracle-in .5s ease-out .08s both; }
+@keyframes oracle-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.oracle-luck:empty { display: none; }
+.oracle-luck {
+  margin-top: 13px;
+  padding-top: 11px;
+  border-top: 1px dashed var(--panel-line);
+}
+.luck-title { font-size: 9.5px; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 7px; }
+.luck-row { display: flex; justify-content: center; gap: 8px; font-size: 12px; margin: 3px 0; }
+.luck-k { color: var(--text-dim); }
+.luck-v { color: #e8c97a; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+.luck-dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,.25); }
+.luck-tip { font-size: 11px; color: #d8b98f; margin-top: 9px; line-height: 1.6; }
+.oracle-btn {
+  margin-top: 12px;
+  width: 100%;
+  background: linear-gradient(#3a2f22, #2c2318);
+  border: 1px solid #6b5636;
+  color: #f0dcae;
+  border-radius: 9px;
+  padding: 11px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.oracle-btn:disabled { opacity: .6; }
 #name-input {
   width: 100%;
   box-sizing: border-box;
