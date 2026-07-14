@@ -335,7 +335,7 @@ export function diaryLog(line, w = 1, now = Date.now()) {
   const entry = r.diary[r.diary.length - 1];
   if (!entry || entry.date !== key) {
     r.diary.push({ date: key, line, w });
-    if (r.diary.length > 60) r.diary.shift();   // 只留最近 60 天
+    if (r.diary.length > 7) r.diary.shift();    // 只留最近 7 天
   } else if (w >= (entry.w || 0)) {
     entry.line = line;
     entry.w = w;

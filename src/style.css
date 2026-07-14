@@ -640,6 +640,8 @@ html, body {
   width: 60px; height: auto;
   image-rendering: pixelated;
 }
+/* 手心朝上：同一張圖向右轉 90° */
+#hand[data-kind="palm"] .hand-img { transform: rotate(90deg); }
 
 /* 摸摸時：像素手輕輕下壓撫摸 */
 #hand.petting .hand-img { animation: hand-press .62s ease-in-out infinite; transform-origin: 50% 0; }
@@ -1051,22 +1053,27 @@ html, body {
 }
 
 /* ---------- HUD 右上角小按鈕列 ---------- */
+/* 選單工具列：從擠在頂端搬到缸與底部操作列之間，一整排平均分佈 */
 #hud-btns {
-  margin-left: auto;
+  width: 100%;
+  max-width: 520px;
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 #hud-btns button {
-  background: #2f2820;
+  flex: 1;
+  background: var(--panel);
   border: 1px solid var(--panel-line);
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--text);
   font-family: inherit;
-  font-size: 12px;
-  padding: 4px 7px;
+  font-size: 17px;
+  line-height: 1;
+  padding: 8px 0;
   cursor: pointer;
   touch-action: manipulation;
 }
+#hud-btns button.locked { opacity: .45; }
 
 #dex, #help, #diary, #album {
   position: fixed;

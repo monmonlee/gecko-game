@@ -471,17 +471,13 @@ const handAnchor = kind => (kind === 'palm' ? 34 : 30);
 
 function showHand(kind, x, y) {
   const h = handEl();
-  if (kind === 'palm') {
-    h.innerHTML = palmHandSVG();
-  } else {
-    // 摸摸的手用玩家畫的像素圖；載不到就退回程式畫的 SVG 手
-    h.innerHTML = '';
-    const img = new Image();
-    img.className = 'hand-img';
-    img.onerror = () => { h.innerHTML = petHandSVG(); };
-    img.src = './hand.png';
-    h.appendChild(img);
-  }
+  // 兩種手勢都用玩家畫的像素圖（手心朝上＝同一張向右轉 90°）；載不到才退回 SVG
+  h.innerHTML = '';
+  const img = new Image();
+  img.className = 'hand-img';
+  img.onerror = () => { h.innerHTML = kind === 'palm' ? palmHandSVG() : petHandSVG(); };
+  img.src = './hand.png';
+  h.appendChild(img);
   h.dataset.kind = kind;
   h.style.display = 'block';
   h.style.transition = 'none';
@@ -529,7 +525,8 @@ function startPetting() {
   setZoom(false);
   handBusy = true;
   brain.startPetWait();
-  const hx = brain.x, hy = brain.y - 54;
+  // 手往尾巴那一側偏一點，別擋到牠的臉（頭在 facing 那側）
+  const hx = brain.x - brain.facing * 13, hy = brain.y - 58;
   showHand('pet', hx, hy - 40);
   moveHand(hx, hy);
   setTimeout(() => {
@@ -605,19 +602,30 @@ function startPalm() {
   }, CONFIG.pet.palmWaitMs);
 }
 
-// ---- 問小波：按鈕抽籤（好感達門檻才開）----
+// ---- 問牠：按鈕抽籤，一天一次（好感達門檻才開）----
+const oracleDateKey = now => {
+  const d = new Date(now);
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+};
+
 function openOracle() {
-  const g = gs.gecko;
+  const g = gs.gecko, name = escName(g.name);
   const need = CONFIG.oracle.minAffinity;
   if (g.affinity < need) {
     sound.sfx('fail');
-    return showToast(`🔮 好感度 ${need} 以上，小波才願意告訴你牠的直覺唷（現在 ${Math.round(g.affinity)}）`);
+    return showToast(`🔮 好感度 ${need} 以上，${name}才願意告訴你牠的直覺唷（現在 ${Math.round(g.affinity)}）`);
   }
   sound.sfx('click');
+  const today = oracleDateKey(Date.now());
+  const saved = gs.records.oracleToday;
+  const done = saved && saved.date === today;   // 今天已經問過了
+
   $('modal-box').innerHTML = `
-    <h3>🔮 問小波</h3>
-    <div class="modal-note">在心裡，悄悄想一件事……<br>然後湊近牠，聽牠說一句夢話。</div>
-    <div id="oracle-card" class="oracle-card">
+    <h3>🔮 問${name}</h3>
+    <div class="modal-note">${done
+      ? `今天已經問過了。<br>這是${name}今天給你的話——記著它，明天再來。`
+      : '在心裡，悄悄想一件事……<br>然後湊近牠，聽牠說一句夢話。<br><span class="oracle-hint">（一天只能問一次）</span>'}</div>
+    <div id="oracle-card" class="oracle-card${done ? ' revealed' : ''}">
       <div id="oracle-line" class="oracle-line">「……」</div>
       <div id="oracle-luck" class="oracle-luck"></div>
     </div>
@@ -625,31 +633,40 @@ function openOracle() {
   $('modal').classList.remove('hidden', 'locked');
   const card = $('oracle-card'), lineEl = $('oracle-line'), luckEl = $('oracle-luck'), btn = $('oracle-draw');
 
-  const doDraw = () => {
+  const paint = f => {
+    lineEl.textContent = `「${f.line}」`;
+    luckEl.innerHTML =
+      `<div class="luck-title">— ${name}的今日直覺 —</div>` +
+      `<div class="luck-row"><span class="luck-k">幸運數字</span><span class="luck-v">${f.number}</span></div>` +
+      `<div class="luck-row"><span class="luck-k">幸運顏色</span><span class="luck-v"><i class="luck-dot" style="background:${f.color.hex}"></i>${f.color.name}</span></div>` +
+      `<div class="luck-tip">「我覺得今天…${f.tip}，應該很好。」</div>`;
+  };
+
+  if (done) {
+    paint(saved.fortune);
+    btn.textContent = '明天再來問 🌙';
+    btn.disabled = true;
+    return;
+  }
+
+  btn.addEventListener('click', () => {
     gs.records.oracleRecent ??= [];
     const f = drawFortune(gs.records.oracleRecent);
     gs.records.oracleRecent.push(f.line);
     if (gs.records.oracleRecent.length > 14) gs.records.oracleRecent.shift();
+    gs.records.oracleToday = { date: today, fortune: f };
     save(Date.now());
     sound.sfx('unlock');
-    // 揭曉：先抖一下「……」再淡入
     card.classList.remove('revealed');
     lineEl.textContent = '「……」';
     luckEl.innerHTML = '';
     btn.disabled = true;
     setTimeout(() => {
-      lineEl.textContent = `「${f.line}」`;
-      luckEl.innerHTML =
-        `<div class="luck-title">— 小波的今日直覺 —</div>` +
-        `<div class="luck-row"><span class="luck-k">幸運數字</span><span class="luck-v">${f.number}</span></div>` +
-        `<div class="luck-row"><span class="luck-k">幸運顏色</span><span class="luck-v"><i class="luck-dot" style="background:${f.color.hex}"></i>${f.color.name}</span></div>` +
-        `<div class="luck-tip">「我覺得今天…${f.tip}，應該很好。」</div>`;
+      paint(f);
       card.classList.add('revealed');
-      btn.disabled = false;
-      btn.textContent = '再問一次 🔮';
+      btn.textContent = '明天再來問 🌙';   // 一天一次，抽完就鎖到明天
     }, 460);
-  };
-  btn.addEventListener('click', doDraw);
+  }, { once: true });
 }
 
 // ---- 圖鑑分頁 ----
@@ -818,7 +835,7 @@ function openDiary() {
       return `
         <div class="diary-day">${Number(m)} 月 ${Number(d)} 日</div>
         <div class="diary-line">${line}</div>`;
-    }).join('') + '<div class="modal-note">（每天一行：牠會記下當天最重要的一件事，最多留 60 天）</div>';
+    }).join('');
   }
   $('diary').classList.remove('hidden');
 }
@@ -896,8 +913,9 @@ export function refresh() {
   $('clamp-sub').textContent = env.poopPresent ? '有便便!' : env.shedSkinPresent ? '有蛻皮!' : '';
   $('btn-hand').disabled = !env.lightOn || feeder.active || handBusy;
   $('btn-scale').disabled = !env.lightOn || handBusy;
-  // 問小波：好感沒到門檻先鎖著（按了會提示，不是藏起來）
+  // 問牠：好感沒到門檻先鎖著（按了會提示，不是藏起來）
   $('btn-oracle').classList.toggle('locked', g.affinity < CONFIG.oracle.minAffinity);
+  $('btn-oracle').title = `問${g.name}`;
 }
 
 // 狀態列＝牠的內心小劇場

@@ -39,13 +39,28 @@ render.setMode(gs.environment);
     render.setMode(gs.environment);
     const kind = qp.get('hand');
     const h = document.getElementById('hand');
-    if (kind === 'palm') { h.innerHTML = render.palmHandSVG(); }
-    else { h.innerHTML = `<img class="hand-img" src="./hand.png" alt="">`; }
+    h.innerHTML = `<img class="hand-img" src="./hand.png" alt="">`;
     h.dataset.kind = kind;
     h.style.display = 'block';
     const ax = kind === 'palm' ? 34 : 30;
     h.style.transform = `translate(${brain.x - ax}px, ${brain.y - 54}px)`;
     if (kind === 'pet') h.classList.add('petting');
+  }
+  if (qp.get('petnow')) {
+    document.getElementById('title').classList.add('hidden');
+    document.getElementById('prologue').classList.add('hidden');
+    gs.gecko.affinity = 90;
+    gs.records.fullTrustShown = true;
+    gs.environment.lightOn = true;
+    gs.gecko.currentActivity = 'active';
+    brain.set('active'); brain.sub = 'idle';
+    brain.x = 160; brain.y = 202; brain.facing = qp.get('face') === 'l' ? -1 : 1;
+    render.setMode(gs.environment);
+    ui.refresh();
+    setTimeout(() => {
+      document.getElementById('btn-hand').click();
+      setTimeout(() => document.getElementById('pet-mode').click(), 40);
+    }, 40);
   }
   if (qp.get('oracle')) {
     document.getElementById('title').classList.add('hidden');
