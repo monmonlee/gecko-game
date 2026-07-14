@@ -75,6 +75,21 @@ render.setMode(gs.environment);
       setTimeout(() => document.getElementById('oracle-draw').click(), 60);
     }, 60);
   }
+  if (qp.get('dream')) {
+    document.getElementById('title').classList.add('hidden');
+    document.getElementById('prologue').classList.add('hidden');
+    gs.gecko.affinity = 90;
+    gs.records.fullTrustShown = true;
+    gs.environment.lightOn = false;
+    gs.environment.viewMode = 'nightvision';
+    gs.gecko.currentActivity = 'sleeping';
+    gs.gecko.locationId = 'driftwood';
+    gs.gecko.sleepPoseId = 'perch';
+    const l = CONFIG.locations.driftwood;
+    brain.x = l.x; brain.y = l.y;
+    brain.dreamAt = 0;                 // 立刻可能說夢話
+    render.setMode(gs.environment);
+  }
   if (qp.get('walkto')) {
     document.getElementById('title').classList.add('hidden');
     document.getElementById('prologue').classList.add('hidden');

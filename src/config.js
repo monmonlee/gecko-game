@@ -88,6 +88,9 @@ export const CONFIG = {
   // 問小波（抽籤）：好感度到門檻牠才願意說牠的直覺
   oracle: { minAffinity: 80 },
 
+  // 夜間限定夢話：關燈＋夜視靜靜看牠，才偶爾聽得到（給夜視鏡長期的意義）
+  dream: { firstMs: [18000, 34000], gapMs: [30000, 75000], chance: 0.7 },
+
   locations: {
     hide:      { x: 44,  y: 200, label: '躲避屋' },
     plant:     { x: 103, y: 198, label: '植物下' },

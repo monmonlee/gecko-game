@@ -5,6 +5,7 @@ import {
 } from './state.js';
 import { emit } from './events.js';
 import { drawGecko } from './render.js';
+import { DREAM_SLEEP, DREAM_AWAKE } from './oracle.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const randMs = span => rand(span[0], span[1]);
@@ -54,6 +55,7 @@ export class Brain {
     this.arcH = 0;                     // 這段移動的弧高（0＝平地不跳）
     this.micro = null;                 // 進行中的小動作（打哈欠、舔眼睛…）
     this.microAt = now + randMs(CONFIG.micro.firstMs);
+    this.dreamAt = now + randMs(CONFIG.dream.firstMs);   // 下一次可能聽到夢話的時間
 
     // 暫態 activity 不跨 session
     if (['hunting', 'frozen', 'petted'].includes(gs.gecko.currentActivity)) {
@@ -89,6 +91,7 @@ export class Brain {
       case 'petted':   this.updatePetted(dt, now); break;
     }
     this.maybeMicro(now);
+    this.maybeDream(now);
     this.checkUnlock();
     drawGecko(this);
   }
@@ -121,6 +124,26 @@ export class Brain {
     this.micro = { id, until: now + CONFIG.micro.durMs[id] };
     if (id === 'camface') emit('camface');
     if (id !== 'notice') unlockBehavior(id);   // notice 不進圖鑑——它是純粹的時刻，不是收集品
+  }
+
+  // 夜間限定：關燈＋夜視靜靜看牠，才偶爾聽見的夢話／私密自言自語
+  // 睡著＝夢話（任何好感度都有）；醒著放空＝卸下防備的一面（熟悉／信任才有）
+  maybeDream(now) {
+    const env = gs.environment;
+    const watching = !env.lightOn && env.viewMode === 'nightvision';
+    if (!watching) {                       // 沒在夜視偷看就一直往後推，開夜視後才會有第一次
+      this.dreamAt = now + randMs(CONFIG.dream.firstMs);
+      return;
+    }
+    if (now < this.dreamAt) return;
+    this.dreamAt = now + randMs(CONFIG.dream.gapMs);
+    if (Math.random() > CONFIG.dream.chance) return;    // 不是每次都說，才顯得珍貴
+    if (this.act === 'sleeping') {
+      emit('toast', `💤「${pick(DREAM_SLEEP)}」`);
+    } else if (this.act === 'active' && ['idle', 'rest', 'lookout'].includes(this.sub) &&
+               ['familiar', 'trust'].includes(this.tier())) {
+      emit('toast', `💭 ${pick(DREAM_AWAKE)}`);
+    }
   }
 
   moveToward(tx, ty, dt, speed) {
