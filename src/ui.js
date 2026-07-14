@@ -533,7 +533,7 @@ function startPetting() {
   moveHand(hx, hy);
   setTimeout(() => {
     const jitter = (Math.random() * 2 - 1) * CONFIG.pet.rateJitter;
-    const rate = Math.max(0, Math.min(100, g.affinity + jitter));
+    const rate = Math.max(0, Math.min(100, g.affinity * CONFIG.pet.rateScale + jitter));
     if (Math.random() * 100 < rate) {
       handEl().classList.add('petting');
       petHearts(brain.x, brain.y - 40);
@@ -575,6 +575,10 @@ function startPalm() {
   if (handBusy || feeder.active || !gs.environment.lightOn) return;
   const g = gs.gecko;
   if (g.currentActivity === 'hiding') return showToast('「我在窩裡不出去～你的手掌看起來還是有點可怕」');
+  // 上手一天只能一次（成功後鎖到明天；失敗不算，可以再試）
+  if (gs.records.lastPalmDay === oracleDateKey(Date.now())) {
+    return showToast('🫴「今天已經爬過你的手了…暖暖的。明天再讓你抱嘛。」');
+  }
   setZoom(false);
   handBusy = true;
   const px = Math.max(30, Math.min(290, brain.x + (brain.x < 160 ? 40 : -40)));
@@ -588,6 +592,7 @@ function startPalm() {
     if (Math.random() * 100 < rate) {
       brain.palmClimb(px, py);
       petHearts(px, py - 30);
+      gs.records.lastPalmDay = oracleDateKey(Date.now());   // 成功才鎖，一天一次
       gs.records.handTameCount = (gs.records.handTameCount || 0) + 1;
       unlockBehavior('heart_eyes');
       addAffinity(CONFIG.affinity.handTame, '爬上你的手');

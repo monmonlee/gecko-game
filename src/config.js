@@ -73,7 +73,8 @@ export const CONFIG = {
     judgeDelayMs: 900,                // 手伸過去到判定的時間
     happyMs: 1800,                    // 瞇眼享受的時間
     palmWaitMs: 5000,                 // 手心朝上等待 5 秒
-    rateJitter: 10,                   // 摸摸成功率 = affinity ± 10
+    rateJitter: 10,                   // 摸摸成功率的隨機浮動 ±10
+    rateScale: 0.6,                   // 摸摸成功率 = affinity×0.6 ± 浮動（壓低，好感別漲太快）
     palmRatePerAff: 1.5,              // 上手成功率 = (affinity−50) × 1.5%
   },
 
