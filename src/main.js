@@ -16,6 +16,47 @@ const feeder = new Feeder(document.getElementById('stage'), brain, () => ui.refr
 ui.init(brain, feeder, isNew);
 render.setMode(gs.environment);
 
+// QA 用：?pose=halfout&loc=hide 直接擺好指定睡姿，方便截圖對位（正常遊玩不會觸發）
+{
+  const qp = new URLSearchParams(location.search);
+  if (qp.has('pose')) {
+    document.getElementById('title').classList.add('hidden');
+    document.getElementById('prologue').classList.add('hidden');
+    gs.environment.lightOn = true;
+    if (qp.get('loc')) gs.gecko.locationId = qp.get('loc');
+    gs.gecko.currentActivity = 'sleeping';
+    gs.gecko.sleepPoseId = qp.get('pose');
+    if (qp.get('stage')) gs.gecko.stage = qp.get('stage');
+    const l = CONFIG.locations[gs.gecko.locationId];
+    if (l) { brain.x = l.x; brain.y = l.y; }
+    render.setMode(gs.environment);
+  }
+  if (qp.get('hand')) {
+    document.getElementById('title').classList.add('hidden');
+    document.getElementById('prologue').classList.add('hidden');
+    gs.environment.lightOn = true;
+    brain.x = 150; brain.y = 210;
+    render.setMode(gs.environment);
+    const kind = qp.get('hand');
+    const h = document.getElementById('hand');
+    h.innerHTML = kind === 'palm' ? render.palmHandSVG() : render.petHandSVG();
+    h.dataset.kind = kind;
+    h.style.display = 'block';
+    const ax = kind === 'palm' ? 34 : 22;
+    h.style.transform = `translate(${brain.x - ax}px, ${brain.y - 54}px)`;
+    if (kind === 'pet') h.classList.add('petting');
+  }
+  if (qp.get('walkto')) {
+    document.getElementById('title').classList.add('hidden');
+    document.getElementById('prologue').classList.add('hidden');
+    gs.environment.lightOn = true;
+    brain.x = 120; brain.y = 214;
+    brain.set('active');
+    brain.walkToLoc(qp.get('walkto'), 60, 'walk');
+    render.setMode(gs.environment);
+  }
+}
+
 // 主迴圈
 let last = performance.now();
 function frame(t) {

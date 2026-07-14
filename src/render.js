@@ -190,6 +190,53 @@ export function geckoMarkup() {
   return sideSVG() + Object.values(POSE_SVGS).join('');
 }
 
+// ---- 巨人的手（取代 emoji，跟守宮同一套 SVG 工法）----
+// 從上方伸進缸裡：食指伸出來輕輕摸，其餘手指微彎。.petting 時食指會上下撫摸。
+export function petHandSVG() {
+  return `
+<svg class="hand-svg" viewBox="0 0 60 84" xmlns="http://www.w3.org/2000/svg">
+  <!-- 袖口 -->
+  <rect x="14" y="0" width="30" height="15" rx="6" fill="#6f8fb8"/>
+  <rect x="14" y="9.5" width="30" height="6" rx="3" fill="#5c7aa0"/>
+  <!-- 手背 -->
+  <path d="M16 12 Q15 9 19 9 L41 9 Q45 9 44 13 L44 36 Q44 47 32 48 L28 48 Q16 47 16 36 Z" fill="#eab98f"/>
+  <path d="M16 12 Q15 9 19 9 L41 9 Q45 9 44 13 L44 20 L16 20 Z" fill="#f0c8a2"/>
+  <!-- 微彎的三指 -->
+  <path d="M25 44 Q24 54 27 56 Q30 57 31 54 Q31 48 30 44 Z" fill="#e0aa7f"/>
+  <path d="M32 45 Q31 55 34 57 Q37 58 38 55 Q38 49 37 45 Z" fill="#e0aa7f"/>
+  <path d="M38 43 Q38 51 41 53 Q44 54 44 50 Q44 46 43 42 Z" fill="#dba279"/>
+  <!-- 拇指 -->
+  <path d="M44 24 Q53 25 52 34 Q51 41 44 38 Z" fill="#e0aa7f"/>
+  <!-- 食指：伸出去摸摸的那根 -->
+  <g class="hand-finger">
+    <path d="M18 42 Q16 58 20 65 Q24 68 26 63 Q27 52 25 42 Z" fill="#eab98f"/>
+    <ellipse cx="22.5" cy="64" rx="3.4" ry="2.6" fill="#f0c8a2"/>
+    <path d="M20 64 Q22.5 66 25 64" stroke="#d69b76" stroke-width="0.7" fill="none" opacity=".6"/>
+  </g>
+</svg>`;
+}
+
+// 手心朝上：攤平的手掌，等守宮爬上來
+export function palmHandSVG() {
+  return `
+<svg class="hand-svg" viewBox="0 0 74 66" xmlns="http://www.w3.org/2000/svg">
+  <!-- 袖口（右側） -->
+  <rect x="58" y="26" width="16" height="28" rx="6" fill="#6f8fb8"/>
+  <rect x="58" y="26" width="7" height="28" rx="3" fill="#5c7aa0"/>
+  <!-- 攤平的手掌 -->
+  <path d="M8 40 Q6 32 16 31 L54 30 Q64 30 64 40 Q64 47 54 47 L16 48 Q9 48 8 40 Z" fill="#eab98f"/>
+  <!-- 掌心 -->
+  <ellipse cx="34" cy="40" rx="22" ry="6.5" fill="#f0c8a2"/>
+  <path d="M20 38 Q34 41 50 39" stroke="#d69b76" stroke-width="0.8" fill="none" opacity=".5"/>
+  <!-- 四指攤開（朝左） -->
+  <path d="M8 37 Q-2 35 -1 39 Q0 43 9 43 Z" fill="#e0aa7f"/>
+  <path d="M9 33 Q0 29 -1 33 Q-1 37 9 37 Z" fill="#e6b184"/>
+  <path d="M11 44 Q2 47 3 50 Q4 53 12 49 Z" fill="#e0aa7f"/>
+  <!-- 拇指（上緣翹起） -->
+  <path d="M22 31 Q20 22 27 21 Q33 21 32 30 Z" fill="#e6b184"/>
+</svg>`;
+}
+
 // 開燈光束裡漂浮的灰塵
 function makeDust() {
   const box = document.getElementById('dust');
@@ -254,8 +301,8 @@ export function drawWorld() {
 
 // 某些睡姿需要偏移（睡屋頂上、泡水盆裡、貼玻璃…）
 const POSE_OFF = {
-  roof:      { dx: 4,   dy: -30 },
-  halfout:   { dx: 40,  dy: 0 },   // 上半身探出窩外
+  roof:      { dx: 22,  dy: -13 },
+  halfout:   { dx: 40,  dy: 4 },   // 上半身探出窩外
   hide_tail: { dx: 18,  dy: 2 },   // 頭朝屋內，尾巴留在洞口
   soak:      { dx: 16,  dy: 4 },
   glass:     { dx: -6,  dy: 2 },
@@ -305,6 +352,8 @@ export function drawGecko(b) {
     if (b.sub === 'dodge') cls.push('walking', 'running');
   }
   if (b.micro && Date.now() < b.micro.until) cls.push('micro-' + b.micro.id);
+  const lift = walking ? (b.lift || 0) : 0;     // 跳躍弧線只在移動時作用
+  if (lift < -3) cls.push('jumping');           // 騰空時身體拉長一點
   if (tier && (act === 'active' || act === 'frozen')) cls.push('mood-low');   // 陌生／警戒期的冷淡眼神
   cls.push('stage-' + g.stage);       // 幼體色調對比較高
   geckoEl.className = cls.join(' ');
@@ -318,7 +367,7 @@ export function drawGecko(b) {
   const tp = Math.min(1, (performance.now() - turnAt) / 140);
   const fx = 0.3 + 0.7 * tp;
   geckoEl.style.transform =
-    `translate(${(b.x - 32 + ox).toFixed(1)}px, ${(b.y - 62 + oy).toFixed(1)}px) scale(${(sz * face * fx).toFixed(3)}, ${sz})`;
+    `translate(${(b.x - 32 + ox).toFixed(1)}px, ${(b.y - 62 + oy + lift).toFixed(1)}px) scale(${(sz * face * fx).toFixed(3)}, ${sz})`;
 
   drawEmote(b, act, sz);
   updateCamera(b);

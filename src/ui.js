@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 import { on } from './events.js';
 import { gs, tierOf, save, addAffinity, recordWeigh, tickWorld, unlockBehavior, diaryLog, checkBugUnlocks } from './state.js';
-import { setMode, drawWorld, poseThumb, setZoom, isZoom, geckoMarkup, exportSVGString, bugSVG } from './render.js';
+import { setMode, drawWorld, poseThumb, setZoom, isZoom, geckoMarkup, exportSVGString, bugSVG, petHandSVG, palmHandSVG } from './render.js';
 import * as sound from './sound.js';
 
 let brain, feeder;
@@ -463,20 +463,39 @@ function tickCompanionship() {
 // ---- 摸摸流程 ----
 const handEl = () => $('hand');
 
-function showHand(emoji, x, y) {
+function showHand(kind, x, y) {
   const h = handEl();
-  h.querySelector('span').textContent = emoji;
+  h.innerHTML = kind === 'palm' ? palmHandSVG() : petHandSVG();
+  h.dataset.kind = kind;
   h.style.display = 'block';
   h.style.transition = 'none';
-  h.style.transform = `translate(${x - 13}px, ${y}px)`;
+  // palm 圖比較寬，錨點對到掌心中央
+  const ax = kind === 'palm' ? 34 : 22;
+  h.style.transform = `translate(${x - ax}px, ${y}px)`;
+}
+
+// 摸摸成功時：手心處冒出幾顆愛心飄上去
+function petHearts(x, y) {
+  const stage = $('world');
+  for (let i = 0; i < 4; i++) {
+    const s = document.createElement('span');
+    s.className = 'pet-heart';
+    s.textContent = i % 2 ? '💛' : '❤️';
+    s.style.left = (x + (Math.random() * 20 - 10)) + 'px';
+    s.style.top = (y + (Math.random() * 8)) + 'px';
+    s.style.animationDelay = (i * 0.12) + 's';
+    stage.appendChild(s);
+    setTimeout(() => s.remove(), 1600);
+  }
 }
 
 function moveHand(x, y) {
   const h = handEl();
+  const ax = h.dataset.kind === 'palm' ? 34 : 22;
   // 兩次 rAF：先讓起始位置生效，再開啟過渡動畫
   requestAnimationFrame(() => requestAnimationFrame(() => {
     h.style.transition = 'transform .8s ease';
-    h.style.transform = `translate(${x - 13}px, ${y}px)`;
+    h.style.transform = `translate(${x - ax}px, ${y}px)`;
   }));
 }
 
@@ -497,13 +516,14 @@ function startPetting() {
   handBusy = true;
   brain.startPetWait();
   const hx = brain.x, hy = brain.y - 54;
-  showHand('🤚', hx, hy - 40);
+  showHand('pet', hx, hy - 40);
   moveHand(hx, hy);
   setTimeout(() => {
     const jitter = (Math.random() * 2 - 1) * CONFIG.pet.rateJitter;
     const rate = Math.max(0, Math.min(100, g.affinity + jitter));
     if (Math.random() * 100 < rate) {
       handEl().classList.add('petting');
+      petHearts(brain.x, brain.y - 40);
       brain.petHappy();
       addAffinity(CONFIG.affinity.pet, '摸摸');
       showToast(pickOne([
@@ -546,7 +566,7 @@ function startPalm() {
   handBusy = true;
   const px = Math.max(30, Math.min(290, brain.x + (brain.x < 160 ? 40 : -40)));
   const py = Math.min(216, Math.max(196, brain.y));
-  showHand('🫴', px, py - 64);
+  showHand('palm', px, py - 64);
   moveHand(px, py - 26);
   brain.palmApproach(px, py);
   showToast('🫴 你把手掌平放在牠面前，靜靜等待…');
@@ -554,6 +574,7 @@ function startPalm() {
     const rate = Math.max(0, g.affinity - 50) * CONFIG.pet.palmRatePerAff;
     if (Math.random() * 100 < rate) {
       brain.palmClimb(px, py);
+      petHearts(px, py - 30);
       gs.records.handTameCount = (gs.records.handTameCount || 0) + 1;
       unlockBehavior('heart_eyes');
       addAffinity(CONFIG.affinity.handTame, '爬上你的手');

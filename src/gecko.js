@@ -10,6 +10,15 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const randMs = span => rand(span[0], span[1]);
 const pick = arr => arr[(Math.random() * arr.length) | 0];
 
+// 這段移動要不要跳、跳多高：平地走路不跳，往上跳得高、往下也帶一點落差
+function arcHeightFor(x0, y0, x1, y1) {
+  const dist = Math.hypot(x1 - x0, y1 - y0);
+  const climb = y0 - y1;                        // 正＝往上、負＝往下
+  if (dist < 20 || Math.abs(climb) < 12) return 0;
+  const h = climb > 0 ? 5 + climb * 0.62 : 3 - climb * 0.28;
+  return Math.min(h, 30);
+}
+
 const HIDE = CONFIG.locations.hide;      // 躲避屋的邏輯位置
 const HIDE_IN = { x: 62, y: 202 };       // 屋內實際趴的位置：頭朝內、尾巴剛好留在洞口
 const HIDE_PEEK_X = 80;                  // 探頭時頭從洞口伸出
@@ -40,6 +49,9 @@ export class Brain {
     this.nextPoseRotate = now + randMs(CONFIG.pose.rotateMs);
     this.hunt = null;
     this.via = null;                   // 移動的中途點（進窩先繞洞口）
+    this.lift = 0;                     // 跳躍弧線的即時垂直位移（畫面用，負值＝往上）
+    this.moveStart = null;            // 這段移動的起點（算弧線進度用）
+    this.arcH = 0;                     // 這段移動的弧高（0＝平地不跳）
     this.micro = null;                 // 進行中的小動作（打哈欠、舔眼睛…）
     this.microAt = now + randMs(CONFIG.micro.firstMs);
 
@@ -130,15 +142,33 @@ export class Brain {
     this.sub = sub;
     // 進窩不能穿牆：先走到洞口，再從門口鑽進去
     this.via = id === 'hide' ? { x: HIDE_DOOR.x, y: HIDE_DOOR.y } : null;
+    // 有高低差就走弧線（跳上石頭／流木、爬下來），平地照常走
+    this.moveStart = { x: this.x, y: this.y };
+    this.arcH = this.via ? 0 : arcHeightFor(this.x, this.y, l.x, l.y);
+    this.lift = 0;
+  }
+
+  // 依當前進度更新跳躍弧線的垂直位移（先升後降，落點剛好在目標）
+  updateLift() {
+    if (!this.arcH || !this.moveStart) { this.lift = 0; return; }
+    const total = Math.hypot(this.tx - this.moveStart.x, this.ty - this.moveStart.y);
+    if (total < 1) { this.lift = 0; return; }
+    const remain = Math.hypot(this.tx - this.x, this.ty - this.y);
+    const p = Math.max(0, Math.min(1, 1 - remain / total));
+    this.lift = -Math.sin(p * Math.PI) * this.arcH;
   }
 
   // 帶中途點的移動（回傳是否抵達最終目標）
   advance(dt) {
+    let arrived = false;
     if (this.via) {
       if (this.moveToward(this.via.x, this.via.y, dt, this.speed)) this.via = null;
-      return false;
+    } else {
+      arrived = this.moveToward(this.tx, this.ty, dt, this.speed);
     }
-    return this.moveToward(this.tx, this.ty, dt, this.speed);
+    this.updateLift();
+    if (arrived) { this.lift = 0; this.arcH = 0; }
+    return arrived;
   }
 
   // ---- 燈光事件 ----

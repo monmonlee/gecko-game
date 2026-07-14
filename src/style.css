@@ -547,6 +547,7 @@ html, body {
 
 /* 開心彈跳 */
 .gk.act-hop .gecko-svg { animation: hop .42s ease-out 2; }
+.gk.jumping .gecko-svg { transform: scaleY(1.08) scaleX(.93); }   /* 騰空時身體拉長 */
 @keyframes hop {
   0%, 100% { transform: translateY(0); }
   15% { transform: scaleY(.85); }
@@ -573,7 +574,7 @@ html, body {
 .gk.pose-curl .gecko-svg  { transform: scaleY(.85) scaleX(.9); }
 .gk.pose-flat .gecko-svg  { transform: scaleY(.72) scaleX(1.08); }
 .gk.pose-hide_tail .gecko-svg { transform: scaleY(.9); }
-.gk.pose-halfout .gecko-svg { transform: scaleY(.88); }
+.gk.pose-halfout .gecko-svg { transform: scaleY(.6); }   /* 壓低成趴著探出的樣子 */
 .gk.pose-blep_sleep .gecko-svg { transform: scaleY(.8); }
 
 /* 喝水：低頭小口啜 */
@@ -584,7 +585,7 @@ html, body {
 .gk.pose-moss .gecko-svg  { transform: scaleY(.82) scaleX(.88); }
 .gk.pose-belly .gecko-svg { transform: scaleY(.68) scaleX(1.06); }
 .gk.pose-leaf .gecko-svg  { transform: scaleY(.85) scaleX(.9); }
-.gk.pose-roof .gecko-svg  { transform: scaleY(.82); }
+.gk.pose-roof .gecko-svg  { transform: scaleY(.5); }   /* 趴平貼在屋頂上 */
 
 /* ---------- 頭頂心情圖示 ---------- */
 #emote {
@@ -623,16 +624,40 @@ html, body {
   position: absolute;
   left: 0; top: 0;
   z-index: 50;
-  font-size: 26px;
-  line-height: 1;
+  line-height: 0;
   display: none;
   pointer-events: none;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .4));
+  filter: drop-shadow(0 5px 5px rgba(0, 0, 0, .38));
   will-change: transform;
 }
-#hand span { display: block; }
-#hand.petting span { animation: hand-pet .7s ease-in-out 2; }
-@keyframes hand-pet { 50% { transform: translateY(4px) rotate(-8deg); } }
+#hand svg.hand-svg { display: block; height: auto; }
+#hand[data-kind="pet"] svg.hand-svg  { width: 42px; }
+#hand[data-kind="palm"] svg.hand-svg { width: 54px; }
+
+/* 摸摸時：食指輕輕上下撫摸 */
+.hand-finger { transform-box: fill-box; transform-origin: 50% 0; }
+#hand.petting .hand-finger { animation: finger-stroke .6s ease-in-out infinite; }
+@keyframes finger-stroke {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(3px) rotate(-4deg); }
+}
+/* 整隻手也跟著輕輕點頭，撫摸的律動 */
+#hand.petting { animation: hand-bob .6s ease-in-out infinite; }
+@keyframes hand-bob { 50% { margin-top: 2px; } }
+
+/* 摸摸成功飄出的愛心 */
+.pet-heart {
+  position: absolute;
+  z-index: 49;
+  font-size: 13px;
+  pointer-events: none;
+  animation: pet-heart-rise 1.5s ease-out forwards;
+}
+@keyframes pet-heart-rise {
+  0%   { transform: translateY(0) scale(.4); opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translateY(-34px) scale(1); opacity: 0; }
+}
 
 /* ---------- 蟲 ---------- */
 #worm {
