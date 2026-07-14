@@ -642,6 +642,8 @@ html, body {
 }
 /* 手心朝上：同一張圖向右轉 90° */
 #hand[data-kind="palm"] .hand-img { transform: rotate(90deg); }
+/* 手心朝上時，讓守宮爬在手「上面」（守宮 z-index 20），手退到牠後面 */
+#hand[data-kind="palm"] { z-index: 18; }
 
 /* 摸摸時：像素手輕輕下壓撫摸 */
 #hand.petting .hand-img { animation: hand-press .62s ease-in-out infinite; transform-origin: 50% 0; }

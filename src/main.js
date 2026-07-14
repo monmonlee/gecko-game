@@ -1,6 +1,6 @@
 import './style.css';
 import { CONFIG } from './config.js';
-import { initState, gs, save, tickHunger, tickWorld } from './state.js';
+import { initState, gs, save, tickHunger, tickWorld, addAffinity } from './state.js';
 import * as render from './render.js';
 import { Brain } from './gecko.js';
 import { Feeder } from './feed.js';
@@ -74,6 +74,15 @@ render.setMode(gs.environment);
       document.getElementById('btn-oracle').click();
       setTimeout(() => document.getElementById('oracle-draw').click(), 60);
     }, 60);
+  }
+  if (qp.get('ending')) {
+    document.getElementById('title').classList.add('hidden');
+    document.getElementById('prologue').classList.add('hidden');
+    gs.gecko.affinity = 99;
+    gs.records.fullTrustShown = false;
+    gs.environment.lightOn = true;
+    render.setMode(gs.environment);
+    setTimeout(() => addAffinity(1, 'debug'), 50);
   }
   if (qp.get('dream')) {
     document.getElementById('title').classList.add('hidden');
