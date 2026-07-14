@@ -81,6 +81,10 @@ export const CONFIG = {
     base: 15, perDay: 0.22, perFeed: 0.35, max: 95,
   },
 
+  // 成長階段門檻（現實天數）。PoC 先加速：一週內看完整成長。
+  // 真實步調參考值：subadult 60、adult 180。
+  growth: { subadultDay: 3, adultDay: 7 },
+
   locations: {
     hide:      { x: 44,  y: 200, label: '躲避屋' },
     plant:     { x: 103, y: 198, label: '植物下' },

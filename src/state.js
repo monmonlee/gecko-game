@@ -105,8 +105,15 @@ export function initState(now) {
 
 function refreshDerived(now) {
   gs.gecko.ageDays = Math.floor((now - gs.timers.createdAt) / DAY);
-  gs.gecko.stage = gs.gecko.ageDays < 60 ? 'juvenile' : gs.gecko.ageDays < 180 ? 'subadult' : 'adult';
+  gs.gecko.stage = stageForAge(gs.gecko.ageDays);
   gs.gecko.weightGrams = computeWeight();
+}
+
+// 依現實天數決定成長階段（門檻在 config.growth，方便 PoC 調快）
+export function stageForAge(ageDays) {
+  return ageDays < CONFIG.growth.subadultDay ? 'juvenile'
+    : ageDays < CONFIG.growth.adultDay ? 'subadult'
+    : 'adult';
 }
 
 // 體重 = 基礎 + 天數成長 + 餵食累積（純函數、冪等，離線也算得準）

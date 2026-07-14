@@ -37,7 +37,8 @@
       "Bash(gh run *)",
       "Bash(python3 *)",
       "Bash(curl -s \"http://localhost:5173/src/ui.js\")",
-      "Bash(curl -s \"http://localhost:5173/?debug=1\")"
+      "Bash(curl -s \"http://localhost:5173/?debug=1\")",
+      "Bash(git commit -q -m ' *)"
     ]
   }
 }
